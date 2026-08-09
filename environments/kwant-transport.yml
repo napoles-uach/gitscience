@@ -1,0 +1,13 @@
+name: gitscience-kwant
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - kwant=1.5.0
+  - numpy
+  - scipy
+  - matplotlib
+  - pyyaml
+  - pytest
+  - ruff
+  - pip

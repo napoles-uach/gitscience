@@ -1,0 +1,34 @@
+title: Twist-reversal symmetries persist at a new transport energy
+statement: |
+  For the declared helicoidal-ribbon model at energy 0.6 and tau=0.12,
+  T(+tau) equals T(-tau) and P_x(+tau) equals -P_x(-tau), each within an
+  absolute tolerance of 1e-7.
+topic: QT
+model: helicoidal-ribbon-v1
+scope: numerical_instance
+hypothesis_origin: preregistered_symmetry_replication
+conditions:
+  - width=8 and length=24
+  - energy=0.6, hopping=1.0, onsite=0.0, SOC=0.1
+  - tau=0.12 with ideal sigma_x-compatible leads
+  - parameters and tolerances declared before the Kwant run
+verification:
+  verifier: kwant_transport
+  experiment: point_symmetry
+  request:
+    width: 8
+    length: 24
+    energy: 0.6
+    tau: 0.12
+    hopping: 1.0
+    soc: 0.1
+    onsite: 0.0
+    compare_opposite_tau: true
+    check_zero_twist: false
+    check_soc_zero: false
+    symmetry_tolerance: 1.0e-7
+    numerical_tolerance: 1.0e-9
+  assertions:
+    - transmission_even_in_tau
+    - polarization_x_odd_in_tau
+    - numerical_diagnostics

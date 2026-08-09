@@ -1,0 +1,16 @@
+kind: corollary
+title: Even transmission for the declared helicoidal model
+statement:
+  natural_language: |
+    Under the declared scattering-covariance assumption, the model's total
+    transmission is even under reversal of the twist.
+  latex: |
+    T(E,-\tau)=T(E,\tau).
+topic: QT
+model: helicoidal-ribbon-v1
+scope: general
+depends_on:
+  - GS-QT-0002
+  - GS-QT-0003
+limitations:
+  - The conclusion remains conditional until covariance is independently established.

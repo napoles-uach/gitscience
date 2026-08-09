@@ -1,0 +1,34 @@
+kind: numerical_proposition
+title: Reference-point transmission is even under twist reversal
+statement:
+  natural_language: |
+    At the declared parameter point, total transmission agrees under twist
+    reversal within an absolute tolerance of 1e-7.
+  latex: |
+    |T(E,\tau)-T(E,-\tau)|<10^{-7}
+    \quad\text{at}\quad E=1,\ \tau=0.08,\ W=8,\ L=24.
+topic: QT
+model: helicoidal-ribbon-v1
+scope: numerical_instance
+depends_on:
+  - GS-QT-0004
+conditions:
+  - energy=1.0, hopping=1.0, onsite=0.0, SOC=0.1
+verification:
+  verifier: kwant_transport
+  request:
+    width: 8
+    length: 24
+    energy: 1.0
+    tau: 0.08
+    hopping: 1.0
+    soc: 0.1
+    onsite: 0.0
+    compare_opposite_tau: true
+    check_zero_twist: true
+    check_soc_zero: true
+    symmetry_tolerance: 1.0e-7
+    numerical_tolerance: 1.0e-9
+  assertions:
+    - transmission_even_in_tau
+    - numerical_diagnostics

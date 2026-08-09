@@ -1,0 +1,102 @@
+"""Schema-limited verifier for bundled Lean proofs."""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+PROOFS = {
+    "twist_transport_symmetry": {
+        "file": "twist_transport_symmetry.lean",
+        "assertions": {"transport_symmetry_implies_even_transmission"},
+    }
+}
+
+
+@dataclass(frozen=True)
+class LeanFormalVerifier:
+    """Run only formal proofs distributed with this trusted adapter."""
+
+    name: str = "lean_formal"
+    version: str = "0.1.0"
+    default_experiment: str = "trusted_proof"
+    artifact_suffix: str = ".lean.json"
+    evidence_kind: str = "formal_proof"
+    environment_packages: tuple[str, ...] = ()
+
+    @staticmethod
+    def _proof(request: dict[str, Any]) -> tuple[str, Path, set[str]]:
+        if set(request) != {"proof"} or not isinstance(request.get("proof"), str):
+            raise ValueError("Lean request must contain only a string proof name")
+        proof_name = request["proof"]
+        definition = PROOFS.get(proof_name)
+        if definition is None:
+            raise ValueError(f"Unknown trusted Lean proof: {proof_name}")
+        path = Path(__file__).parent / "proofs" / definition["file"]
+        return proof_name, path, definition["assertions"]
+
+    def validate(
+        self, experiment: str, request: dict[str, Any], assertions: list[str]
+    ) -> None:
+        if experiment != self.default_experiment:
+            raise ValueError(f"Unsupported Lean experiment: {experiment}")
+        _, _, allowed = self._proof(request)
+        unknown = sorted(set(assertions) - allowed)
+        if unknown:
+            raise ValueError(f"Unsupported assertions: {', '.join(unknown)}")
+        if not assertions:
+            raise ValueError("At least one Lean assertion is required")
+
+    def run(self, experiment: str, request: dict[str, Any]) -> dict[str, Any]:
+        self.validate(
+            experiment,
+            request,
+            ["transport_symmetry_implies_even_transmission"],
+        )
+        proof_name, proof_path, allowed = self._proof(request)
+        executable = shutil.which("lean")
+        if executable is None:
+            raise RuntimeError(
+                "Lean is not installed or is not on PATH. Install Lean through elan."
+            )
+        version = subprocess.run(
+            [executable, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+        process = subprocess.run(
+            [executable, str(proof_path)],
+            cwd=proof_path.parent,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+        passed = process.returncode == 0
+        detail = {
+            "passes": passed,
+            "proof": proof_name,
+            "source": proof_path.name,
+            "exit_code": process.returncode,
+            "stdout": process.stdout[-10_000:],
+            "stderr": process.stderr[-10_000:],
+        }
+        return {
+            "schema_version": "gitscience-lean-v1",
+            "lean_version": (version.stdout or version.stderr).strip(),
+            "trusted_bundled_source": True,
+            "claims": {assertion: detail for assertion in sorted(allowed)},
+            "diagnostics": {"elaboration_succeeded": passed},
+        }
+
+    def source_paths(self) -> list[Path]:
+        package = Path(__file__).parent
+        return sorted((*package.glob("*.py"), *(package / "proofs").glob("*.lean")))
+
+
+plugin = LeanFormalVerifier()

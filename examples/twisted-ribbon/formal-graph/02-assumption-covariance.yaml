@@ -1,0 +1,18 @@
+kind: assumption
+title: Scattering covariance under twist reversal
+statement:
+  natural_language: |
+    Assume that reversing the twist transforms the scattering representation
+    by a map that preserves total transmission.
+  latex: |
+    \mathcal S_{-\tau}=\Phi(\mathcal S_\tau),\qquad
+    \mathcal T(\Phi(\mathcal S))=\mathcal T(\mathcal S).
+topic: QT
+model: helicoidal-ribbon-v1
+scope: general
+depends_on:
+  - GS-QT-0001
+conditions:
+  - The leads and boundary conditions preserve the declared transformation.
+limitations:
+  - This physical covariance is declared as an assumption, not proved by Lean.

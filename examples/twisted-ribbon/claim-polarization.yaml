@@ -1,0 +1,31 @@
+title: Reference-point x-spin polarization is odd under twist reversal
+statement: |
+  For the declared helicoidal-ribbon model and parameter point,
+  P_x(+tau) equals -P_x(-tau) within an absolute tolerance of 1e-7.
+topic: QT
+model: helicoidal-ribbon-v1
+scope: numerical_instance
+conditions:
+  - width=8 and length=24
+  - energy=1.0, hopping=1.0, onsite=0.0, SOC=0.1
+  - tau=0.08 with ideal sigma_x-compatible leads
+verification:
+  verifier: kwant_transport
+  request:
+    width: 8
+    length: 24
+    energy: 1.0
+    tau: 0.08
+    hopping: 1.0
+    soc: 0.1
+    onsite: 0.0
+    compare_opposite_tau: true
+    check_zero_twist: true
+    check_soc_zero: true
+    symmetry_tolerance: 1.0e-7
+    numerical_tolerance: 1.0e-9
+  assertions:
+    - polarization_x_odd_in_tau
+    - zero_twist_polarization
+    - zero_soc_polarization
+    - numerical_diagnostics

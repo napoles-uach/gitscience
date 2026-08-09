@@ -1,0 +1,55 @@
+name: Effective helicoidal spinful ribbon
+kind: tight_binding
+description: |
+  Spinful square-lattice ribbon embedded in a helicoid. Nearest-neighbor
+  hopping contains a geometry-dependent Rashba term constructed from the local
+  surface normal and embedded bond direction.
+scientific_specification:
+  hilbert_space:
+    lattice: square
+    orbitals_per_site: 2
+    internal_degree: spin-1/2
+  hamiltonian:
+    latex: |
+      H = \sum_i c_i^\dagger (4t+V)I_2 c_i
+      + \sum_{\langle i,j\rangle}
+      \left[c_i^\dagger\left(-tI_2+i\lambda
+      \boldsymbol{\sigma}\cdot
+      (\bar{\mathbf n}_{ij}\times\hat{\mathbf d}_{ij})\right)c_j
+      + \mathrm{h.c.}\right].
+    onsite_latex: "(4t+V)I_2"
+    hopping_latex: |
+      -tI_2+i\lambda\boldsymbol{\sigma}\cdot
+      (\bar{\mathbf n}_{ij}\times\hat{\mathbf d}_{ij})
+  geometry:
+    embedding_latex: |
+      \mathbf r(x,y)=(x,y\cos(\tau x),y\sin(\tau x)).
+    normal_latex: |
+      \mathbf n=\frac{\partial_x\mathbf r\times\partial_y\mathbf r}
+      {\lVert\partial_x\mathbf r\times\partial_y\mathbf r\rVert}.
+  observables:
+    transmission_latex: |
+      T(E,\tau)=\operatorname{Tr}[t^\dagger(E,\tau)t(E,\tau)].
+    polarization_x_latex: |
+      P_x=\frac{T_{+x}-T_{-x}}{T_{+x}+T_{-x}}.
+  parameters:
+    t: {request_key: hopping, units: model_energy_unit}
+    V: {request_key: onsite, units: model_energy_unit}
+    lambda: {request_key: soc, units: model_energy_unit}
+    tau: {request_key: tau, units: inverse_lattice_spacing}
+  implementation_mapping:
+    model_builder: gitscience_kwant.twisted_nanoribbon:build_system
+    hopping_term: gitscience_kwant.twisted_nanoribbon:scattering_hopping
+    transmission: kwant.smatrix.transmission
+leads:
+  count: 2
+  description: Ideal untwisted spin-independent leads
+  conservation_law: sigma_x
+  spin_block_order: [-1, 1]
+conventions:
+  transmission: left-to-right total transmission
+  polarization_x: (T_plus_x - T_minus_x) / (T_plus_x + T_minus_x)
+limitations:
+  - Effective model, not an atomistic material prediction
+  - Coherent two-terminal transport
+  - Numerical claims apply only to their declared parameter points

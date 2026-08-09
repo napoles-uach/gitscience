@@ -1,0 +1,23 @@
+kind: lemma
+title: Scattering covariance implies even transmission
+statement:
+  natural_language: |
+    If scattering is covariant under twist reversal and transmission is
+    invariant under that covariance map, total transmission is even in twist.
+  latex: |
+    \left[\mathcal S_{-\tau}=\Phi(\mathcal S_\tau)\ \land\
+    \mathcal T\circ\Phi=\mathcal T\right]
+    \Longrightarrow T(E,-\tau)=T(E,\tau).
+topic: QT
+model: helicoidal-ribbon-v1
+scope: general
+depends_on:
+  - GS-QT-0001
+  - GS-QT-0002
+verification:
+  verifier: lean_formal
+  experiment: trusted_proof
+  request:
+    proof: twist_transport_symmetry
+  assertions:
+    - transport_symmetry_implies_even_transmission

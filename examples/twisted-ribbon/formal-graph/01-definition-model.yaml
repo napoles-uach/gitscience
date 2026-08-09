@@ -1,0 +1,15 @@
+kind: definition
+title: Helicoidal transport model and transmission observable
+statement:
+  natural_language: |
+    Define the twist reversal operation, scattering representation, and total
+    transmission functional for the declared helicoidal-ribbon model.
+  latex: |
+    \mathcal S_\tau=\mathcal S[H(\tau)],\qquad
+    T(E,\tau)=\operatorname{Tr}[t_\tau^\dagger(E)t_\tau(E)].
+topic: QT
+model: helicoidal-ribbon-v1
+scope: general
+depends_on: []
+conditions:
+  - The mathematical object is the finite coherent two-terminal model.

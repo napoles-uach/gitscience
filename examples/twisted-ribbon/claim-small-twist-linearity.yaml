@@ -1,0 +1,32 @@
+title: Small-twist x-spin polarization is approximately linear
+statement: |
+  For the declared helicoidal-ribbon model and fixed transport parameters, the
+  odd component of P_x(tau) is approximated by a*tau over |tau| <= 0.04 with a
+  normalized maximum residual no greater than 0.06.
+topic: QT
+model: helicoidal-ribbon-v1
+scope: numerical_instance
+hypothesis_origin: exploratory_from_pilot_sweep
+conditions:
+  - width=8 and length=24
+  - energy=1.0, hopping=1.0, onsite=0.0, SOC=0.1
+  - symmetric Kwant runs at tau=0, +/-0.01, +/-0.02, +/-0.03, +/-0.04
+  - this finite sweep does not establish an asymptotic theorem
+verification:
+  verifier: kwant_transport
+  experiment: small_twist_scaling
+  request:
+    width: 8
+    length: 24
+    energy: 1.0
+    tau_values: [0.0, 0.01, 0.02, 0.03, 0.04]
+    hopping: 1.0
+    soc: 0.1
+    onsite: 0.0
+    linearity_tolerance: 0.06
+    quadratic_tolerance: 0.05
+    symmetry_tolerance: 1.0e-7
+    numerical_tolerance: 1.0e-9
+  assertions:
+    - polarization_linear_in_small_twist
+    - numerical_diagnostics
