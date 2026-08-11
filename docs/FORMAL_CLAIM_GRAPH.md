@@ -32,6 +32,9 @@ restriction avoids treating arbitrary repository-supplied Lean metaprograms as
 safe data. The first proof is
 `twist_transport_symmetry.lean`: covariance of the scattering representation
 plus invariance of the transmission functional implies even transmission.
+The second bundled proof, `fmm_error_accumulation.lean`, checks the abstract
+induction that accumulates declared local hybrid error bounds. It does not prove
+the analytic local bound or the RDM occupancy estimate.
 
 The prototype pins Lean `v4.32.2` in `lean-toolchain`. Install it with `elan`
 and make the selected `lean` executable available on `PATH` before running a

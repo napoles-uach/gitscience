@@ -1,0 +1,15 @@
+kind: definition
+title: Quantum-FMM occupancy subspace and error observables
+statement:
+  natural_language: |
+    Define the leaf-box occupancy operators, the capacity-c good subspace,
+    ideal and approximate potential calls, and the pre-call bad probability.
+  latex: |
+    \Pi_c=\prod_b\mathbf 1[N_b\le c],\qquad
+    p_k=\langle\Psi_{k-1}|(I-\Pi_c)|\Psi_{k-1}\rangle.
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on: []
+conditions:
+  - The simulation uses a finite first-quantized real-space grid.

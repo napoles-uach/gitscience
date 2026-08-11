@@ -1,0 +1,21 @@
+kind: lemma
+title: Box overflow is bounded by local factorial moments
+statement:
+  natural_language: |
+    The probability that any leaf box contains more than c particles is
+    bounded by a union of order-(c+1) local factorial moments, equivalently by
+    integrals of the consistently normalized reduced density.
+  latex: |
+    p_k\le
+    \frac{1}{(c+1)!}\sum_b
+    \int_{b^{c+1}}\rho_{c+1}^{(k)}(r_1,\ldots,r_{c+1})
+    \,dr_1\cdots dr_{c+1}.
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0001
+conditions:
+  - The reduced density uses the ordered factorial-moment normalization.
+limitations:
+  - This continuum RDM statement is not yet checked by the bundled Lean proof.

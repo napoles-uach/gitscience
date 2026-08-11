@@ -1,0 +1,18 @@
+kind: conjecture
+title: Kinetic evolution admits a useful occupancy-tail bound
+statement:
+  natural_language: |
+    Seek a bound on bad-box probability throughout kinetic evolution using
+    initial occupancy, kinetic energy, time, capacity, and box scale.
+  latex: |
+    p_{\rm bad}(t)\le
+    F\!\left(p_{\rm bad}(0),\langle T\rangle,t,c,h\right).
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0001
+  - GS-QF-0004
+limitations:
+  - The kinetic operator generally does not commute with Pi_c.
+  - No such bound is proved in this case study.

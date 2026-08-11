@@ -4,12 +4,11 @@ import json
 import subprocess
 from pathlib import Path
 
-import pytest
-
 import gitscience.review as review_module
 from gitscience.cli import main
 from gitscience.repository import GitScienceRepository
-from gitscience.review import ReviewError, review_claim
+from gitscience.review import review_claim
+from gitscience.state import compile_claim_state
 from gitscience.verification import verify_claim
 from gitscience_kwant.plugin import KwantTransportVerifier
 from gitscience_physics_intern.bridge import _extract_result
@@ -85,7 +84,8 @@ class _FakeReviewer:
         return [Path(__file__)]
 
     def run(self, dossier, options):
-        assert dossier["evidence"]
+        assert dossier["schema_version"] == "gitscience-claim-state-v1"
+        assert dossier["interpretation_policy"]["llm_must_not_change_status"] is True
         return {
             "verdict": "VERIFIED",
             "summary": "The supplied evidence is internally consistent.",
@@ -94,12 +94,16 @@ class _FakeReviewer:
         }
 
 
-def test_review_requires_committed_integrity_valid_evidence(tmp_path, monkeypatch):
+def test_review_without_evidence_is_forced_inconclusive(tmp_path, monkeypatch):
     repo, claim_id = _science_repo(tmp_path)
     monkeypatch.setattr(review_module, "get_reviewer", lambda name: _FakeReviewer())
 
-    with pytest.raises(ReviewError, match="No integrity-valid committed evidence"):
-        review_claim(repo, claim_id, "physics_intern")
+    review = review_claim(repo, claim_id, "physics_intern")
+
+    assert review["verdict"] == "INCONCLUSIVE"
+    result = json.loads((repo.root / review["artifact"]["path"]).read_text())
+    assert result["reported_verdict"] == "VERIFIED"
+    assert "no integrity-valid evidence" in result["policy_adjustment"]
 
 
 def test_verified_review_is_versioned_but_does_not_change_status(tmp_path, monkeypatch):
@@ -124,6 +128,17 @@ def test_verified_review_is_versioned_but_does_not_change_status(tmp_path, monke
     assert repo.claim_status(claim_id) == status_before == "corroborated"
     artifact = repo.root / review["artifact"]["path"]
     assert review["artifact"]["sha256"] == repo.sha256(artifact)
+    paths = [
+        ".gitscience/config.json",
+        repo.review_path(review["id"]).relative_to(repo.root).as_posix(),
+        review["artifact"]["path"],
+    ]
+    repo.git(["add", "--", *paths])
+    repo.git(["commit", "-m", "Record advisory review", "--", *paths])
+    state = compile_claim_state(repo, claim_id)
+    assert state["reviews"][0]["id"] == review["id"]
+    assert state["reviews"][0]["affects_claim_status"] is False
+    assert state["status"]["dimensions"]["review"] == "advisory_available"
 
 
 def test_cli_lists_advisory_review(tmp_path, monkeypatch, capsys):

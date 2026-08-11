@@ -1,0 +1,16 @@
+kind: assumption
+title: Independent uniform occupancy model for a finite diagnostic
+statement:
+  natural_language: |
+    For the finite diagnostic only, model eta particles as independently and
+    uniformly assigned to B leaf boxes, so each box occupancy is binomial.
+  latex: |
+    (N_1,\ldots,N_B)\sim\operatorname{Multinomial}
+    \left(\eta;\frac1B,\ldots,\frac1B\right).
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0001
+limitations:
+  - This is a diagnostic model, not a claim about generic electronic states.

@@ -1,0 +1,52 @@
+name: Non-adaptive quantum FMM controlled by occupancy tails
+kind: quantum_algorithm_error_model
+description: |
+  Finite-grid first-quantized model for studying whether the non-adaptive
+  quantum fast multipole method can be restricted to configurations with at
+  most c particles in every leaf box.
+source:
+  title: Quantum Simulation of Electronic Structure via Quantum Fast Multipole Method
+  authors:
+    - Dominic W. Berry
+    - Kianna Wan
+    - Andrew D. Baczewski
+    - Elliot C. Eklund
+    - Arkin Tikku
+    - Ryan Babbush
+  doi: 10.1103/b2vn-zf6c
+  publication: PRX Quantum 7, 033025 (2026)
+  source_pdf_sha256: 5a586d6339575ac1e350c2b0f7f2c75af5c98a67b196bc47db6000c53710daaa
+scientific_specification:
+  occupancy:
+    leaf_boxes: B
+    box_number_operator: N_b
+    capacity: c
+    good_subspace_latex: |
+      \Pi_c=\prod_{b=1}^{B}\mathbf 1\!\left[N_b\le c\right].
+  simulation:
+    ideal_potential_call: U_k
+    approximate_non_adaptive_call: \widetilde U_k
+    calls: R
+    ideal_pre_call_state: \lvert\Psi_{k-1}\rangle
+    bad_probability_latex: |
+      p_k=\langle\Psi_{k-1}\rvert(I-\Pi_c)\lvert\Psi_{k-1}\rangle.
+  independent_occupancy_instance:
+    distribution: multinomial uniform placement into B boxes
+    one_box_marginal: Binomial(eta, 1/B)
+    union_bound_latex: |
+      p_{\mathrm{bad}}\le B\Pr[\operatorname{Binomial}(\eta,1/B)>c].
+implementation_mapping:
+  occupancy_verifier: gitscience_fmm.occupancy:run_occupancy_regime_experiment
+  formal_accumulation_proof: fmm_error_accumulation
+conventions:
+  tail_error_budget: |
+    Delta_tail bounds only the accumulated contribution 2 sum_k sqrt(p_k).
+  per_call_bad_probability_budget: |
+    p_target=(Delta_tail/(2R))^2.
+limitations:
+  - The independent occupancy model is not a generic interacting fermionic state.
+  - The binomial union bound is sufficient and may be conservative.
+  - The local restricted FMM error is an assumption, not established by the verifier.
+  - Kinetic evolution can change occupancy tails because T need not commute with Pi_c.
+  - The spin sector and coincident opposite-spin positions require explicit treatment.
+  - No source code or research data accompanied the source paper.

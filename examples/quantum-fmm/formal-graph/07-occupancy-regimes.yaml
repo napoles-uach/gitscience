@@ -1,0 +1,38 @@
+kind: numerical_proposition
+title: Constant-mean and proportional-mean box regimes must not be conflated
+statement:
+  natural_language: |
+    For 4096 independent particles, 20 calls, and tail error budget 0.01, both
+    a constant-mean construction and a proportional-mean construction can meet
+    the induced per-call overflow budget. Reusing the constant-mean capacity
+    while reducing the box count to approximately eta/c violates that budget.
+  latex: |
+    p_{\mathrm{target}}=\left(\frac{0.01}{2\cdot20}\right)^2=6.25\times10^{-8}.
+    \quad B_{\rm const}=4096,\ c_{\rm const}=13;
+    \quad B_{\rm prop}=93,\ c_{\rm prop}=89.
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: numerical_instance
+depends_on:
+  - GS-QF-0006
+conditions:
+  - particles=4096, calls=20, tail_error_budget=0.01
+  - constant_mean=1.0, load_fraction=0.5
+verification:
+  verifier: fmm_occupancy
+  experiment: independent_occupancy_regimes
+  request:
+    particles: 4096
+    calls: 20
+    tail_error_budget: 0.01
+    constant_mean: 1.0
+    load_fraction: 0.5
+    max_capacity: 512
+  assertions:
+    - constant_mean_tail_budget
+    - proportional_mean_tail_budget
+    - hybrid_regime_exceeds_tail_budget
+    - numerical_diagnostics
+limitations:
+  - The result is a finite binomial union-bound calculation.
+  - It does not establish an asymptotic theorem or a fermionic occupancy law.

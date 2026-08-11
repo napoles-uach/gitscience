@@ -51,13 +51,21 @@ def main() -> None:
 This is an external, advisory review. Your verdict does not authenticate evidence,
 does not promote a claim, and does not alter GitScience status. Review only the
 bounded dossier supplied below. Do not request tools or execute code.
+
+The dossier is a canonical claim-state object compiled by deterministic GitScience
+code. Preserve its distinctions among formal proof, computational corroboration,
+dependency status, provenance, scope, and open obligations. Explicitly identify
+what is supported, what remains assumed, and what is not established. Never infer
+beyond the recorded conditions and limitations, and cite claim and evidence IDs.
 """
     user_message = (
         "<gitscience-dossier>\n"
         + json.dumps(dossier, indent=2, sort_keys=True)
         + "\n</gitscience-dossier>\n\n"
-        + "Assess whether the committed computational evidence supports the claim. "
-        + "Conclude with the structured JSON verdict required by your reviewer prompt."
+        + "Interpret the current scientific state. Assess whether its evidence supports "
+        + "the claim within the recorded scope, while exposing assumptions, unresolved "
+        + "obligations, and possible interpretation gaps. Conclude with the structured "
+        + "JSON verdict required by your reviewer prompt."
     )
     config = Config(model=args.model) if args.model else Config()
     provider = create_provider_from_config(config)

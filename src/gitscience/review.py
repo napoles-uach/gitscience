@@ -12,6 +12,8 @@ from typing import Any
 from .integrity import digest_json
 from .repository import GitScienceRepository, RepositoryError
 from .reviewers import ReviewerError, ReviewerPlugin, get_reviewer
+from .state import SCHEMA_VERSION as CLAIM_STATE_SCHEMA_VERSION
+from .state import compile_claim_state
 
 
 class ReviewError(RuntimeError):
@@ -66,6 +68,9 @@ def inspect_review(
         "reviewer": reviewer.name,
         "reviewer_version": reviewer.version,
         "eligible_evidence": [item["id"] for item in current_evidence],
+        "dossier_schema": CLAIM_STATE_SCHEMA_VERSION,
+        "can_review_without_evidence": True,
+        "no_evidence_verdict_policy": "INCONCLUSIVE",
         "advisory_only": True,
         "affects_claim_status": False,
         "network_or_model_access_may_be_required": True,
@@ -78,9 +83,8 @@ def review_claim(
     reviewer_name: str,
     options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Run a reviewer against committed evidence and record an advisory report."""
+    """Run a reviewer against canonical claim state and record an advisory report."""
     claim = repo.load_claim(claim_id)
-    model = repo.load_model(claim["model"])
     claim_path = repo.claim_path(claim_id)
     model_path = repo.model_path(claim["model"])
     try:
@@ -95,28 +99,16 @@ def review_claim(
         for item in repo.evidence_for_claim(claim_id)
         if item.get("claim", {}).get("sha256") == current_digest
     ]
-    if not evidence_records:
-        raise ReviewError("No integrity-valid committed evidence for this claim revision")
-
     evidence_refs = []
-    dossier_evidence = []
     for evidence in evidence_records:
         evidence_path = repo.evidence_path(evidence["id"])
         evidence_refs.append(_reference(repo, evidence_path, evidence["id"]))
-        artifact_path = repo.root / evidence["artifact"]["path"]
-        dossier_evidence.append(
-            {
-                "record": evidence,
-                "artifact": json.loads(artifact_path.read_text()),
-            }
-        )
+
+    claim_state = compile_claim_state(repo, claim_id)
 
     try:
         reviewer = get_reviewer(reviewer_name)
-        result = reviewer.run(
-            {"claim": claim, "model": model, "evidence": dossier_evidence},
-            options or {},
-        )
+        result = reviewer.run(claim_state, options or {})
     except ReviewerError as exc:
         raise ReviewError(str(exc)) from exc
     except Exception as exc:
@@ -126,6 +118,15 @@ def review_claim(
     verdict = str(result.get("verdict", "")).upper()
     if verdict not in {"VERIFIED", "REFUTED", "INCONCLUSIVE"}:
         raise ReviewError("Reviewer returned an unsupported verdict")
+    if not evidence_records and verdict != "INCONCLUSIVE":
+        result = dict(result)
+        result["reported_verdict"] = verdict
+        result["verdict"] = "INCONCLUSIVE"
+        result["policy_adjustment"] = (
+            "GitScience does not accept VERIFIED or REFUTED when the current "
+            "claim revision has no integrity-valid evidence."
+        )
+        verdict = "INCONCLUSIVE"
 
     review_id = repo.next_review_id()
     artifact_path = repo.root / "review-artifacts" / f"{review_id}.json"

@@ -28,6 +28,7 @@ quality = ["ruff>=0.15.12"]
 gitscience = "gitscience.cli:entrypoint"
 
 [project.entry-points."gitscience.verifiers"]
+fmm_occupancy = "gitscience_fmm.plugin:plugin"
 kwant_transport = "gitscience_kwant.plugin:plugin"
 lean_formal = "gitscience_lean.plugin:plugin"
 
@@ -42,6 +43,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 include = [
     "gitscience",
+    "gitscience_fmm",
     "gitscience_kwant",
     "gitscience_lean",
     "gitscience_physics_intern",
@@ -58,6 +60,7 @@ pythonpath = ["src"]
 branch = true
 source = [
     "gitscience",
+    "gitscience_fmm",
     "gitscience_kwant",
     "gitscience_lean",
     "gitscience_physics_intern",

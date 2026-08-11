@@ -1,0 +1,17 @@
+kind: assumption
+title: Restricted non-adaptive FMM call has controlled error
+statement:
+  natural_language: |
+    Assume that each ideal and approximate potential call is norm preserving
+    and that their difference is bounded on the capacity-c subspace.
+  latex: |
+    \left\|(U_k-\widetilde U_k)\Pi_c\right\|\le\varepsilon_{g,k}.
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0001
+conditions:
+  - U_k and the globally defined approximate circuit are norm preserving.
+limitations:
+  - Correctness of the paper's non-adaptive circuit on this subspace remains to be established.

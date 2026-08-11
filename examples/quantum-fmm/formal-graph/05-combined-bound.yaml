@@ -1,0 +1,23 @@
+kind: corollary
+title: Conditional quantum-FMM error bound from occupancy tails
+statement:
+  natural_language: |
+    Combining the restricted local error, hybrid accumulation, and RDM tail
+    estimate bounds the final state error by good-subspace errors plus local
+    occupancy tails of the ideal intermediate states.
+  latex: |
+    \|\Psi_R-\widetilde\Psi_R\|\le
+    \sum_{k=1}^{R}\left[
+      \varepsilon_{g,k}+2\sqrt{
+      \frac{1}{(c+1)!}\sum_b\int_{b^{c+1}}\rho_{c+1}^{(k)}}
+    \right].
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0002
+  - GS-QF-0003
+  - GS-QF-0004
+limitations:
+  - The bound requires occupancy information at every ideal pre-call state.
+  - It does not yet certify the simulation from initial-state data alone.

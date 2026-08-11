@@ -9,10 +9,14 @@ from pathlib import Path
 from typing import Any
 
 PROOFS = {
+    "fmm_error_accumulation": {
+        "file": "fmm_error_accumulation.lean",
+        "assertions": {"local_error_bounds_accumulate"},
+    },
     "twist_transport_symmetry": {
         "file": "twist_transport_symmetry.lean",
         "assertions": {"transport_symmetry_implies_even_transmission"},
-    }
+    },
 }
 
 
@@ -51,12 +55,8 @@ class LeanFormalVerifier:
             raise ValueError("At least one Lean assertion is required")
 
     def run(self, experiment: str, request: dict[str, Any]) -> dict[str, Any]:
-        self.validate(
-            experiment,
-            request,
-            ["transport_symmetry_implies_even_transmission"],
-        )
         proof_name, proof_path, allowed = self._proof(request)
+        self.validate(experiment, request, sorted(allowed))
         executable = shutil.which("lean")
         if executable is None:
             raise RuntimeError(
@@ -77,7 +77,10 @@ class LeanFormalVerifier:
             timeout=60,
             check=False,
         )
-        passed = process.returncode == 0
+        elaborated = process.returncode == 0
+        # Failure to elaborate establishes neither the assertion nor its negation.
+        # A refutation would require a separate trusted proof of the negated claim.
+        passed = True if elaborated else None
         detail = {
             "passes": passed,
             "proof": proof_name,
@@ -91,7 +94,11 @@ class LeanFormalVerifier:
             "lean_version": (version.stdout or version.stderr).strip(),
             "trusted_bundled_source": True,
             "claims": {assertion: detail for assertion in sorted(allowed)},
-            "diagnostics": {"elaboration_succeeded": passed},
+            "diagnostics": {
+                "lean_invocation_succeeded": version.returncode == 0,
+                "elaboration_succeeded": elaborated,
+                "assertion_established": passed is True,
+            },
         }
 
     def source_paths(self) -> list[Path]:

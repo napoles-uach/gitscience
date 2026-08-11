@@ -4,7 +4,8 @@ GitScience separates deterministic verification from scientific review.
 
 - A verifier executes a predefined, inspectable experiment and may affect the
   derived status of a claim through integrity-valid `EV-*` evidence.
-- A reviewer analyzes a bounded dossier and produces an `RV-*` opinion.
+- A reviewer analyzes the deterministic `gitscience-claim-state-v1` dossier and
+  produces an `RV-*` opinion.
 - A review is always marked `advisory: true` and
   `affects_claim_status: false`.
 - Neither a human-looking name nor an LLM verdict authenticates a record.
@@ -15,6 +16,10 @@ GitScience separates deterministic verification from scientific review.
 layer. It does not import PhysicsIntern into the GitScience core. The adapter
 starts a subprocess in a temporary directory, passes a JSON dossier as data,
 sets no shell command, applies a timeout, and limits the accepted output size.
+The dossier includes the current dependency closure, separate logical and
+computational dimensions, normalized assertion outcomes, provenance, scope
+limits, prior advisory reviews, and open obligations. PhysicsIntern does not
+recompute this state.
 
 Install PhysicsIntern in the same environment and export the provider key
 expected by its selected model. Then inspect and run a review:
@@ -31,4 +36,6 @@ updated counter. `gitscience review run` leaves those files uncommitted.
 PhysicsIntern is deliberately denied the verifier role. Its report can identify
 weak assumptions, missing controls, inconsistent interpretation, or suspicious
 evidence, but deterministic evidence and authenticated human approval remain
-separate controls.
+separate controls. Claims without current evidence may still be interpreted,
+but GitScience forces any attempted `VERIFIED` or `REFUTED` verdict to
+`INCONCLUSIVE`.

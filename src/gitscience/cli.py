@@ -14,6 +14,7 @@ import yaml
 from .repository import GitScienceRepository, RepositoryError
 from .review import ReviewError, inspect_review, review_claim
 from .reviewers import ReviewerError
+from .state import compile_claim_state, explain_claim_state
 from .verification import VerificationError, inspect_claim, verify_claim
 
 
@@ -154,6 +155,21 @@ def _cmd_claim_obligations(args: argparse.Namespace) -> int:
         print(f"{node['id']}\t{node['status']}\t{node['kind']}\t{node['title']}")
         for reason in report["reasons"]:
             print(f"  obligation: {reason}")
+    return 0
+
+
+def _cmd_claim_state(args: argparse.Namespace) -> int:
+    state = compile_claim_state(_repository(args), args.claim_id)
+    if args.json:
+        print(json.dumps(state, indent=2, sort_keys=True))
+    else:
+        _print_yaml(state)
+    return 0
+
+
+def _cmd_claim_explain(args: argparse.Namespace) -> int:
+    state = compile_claim_state(_repository(args), args.claim_id)
+    print(explain_claim_state(state))
     return 0
 
 
@@ -376,6 +392,17 @@ def build_parser() -> argparse.ArgumentParser:
     claim_relock.set_defaults(handler=_cmd_claim_relock)
     claim_obligations = claim_commands.add_parser("obligations")
     claim_obligations.set_defaults(handler=_cmd_claim_obligations)
+    claim_state = claim_commands.add_parser(
+        "state", help="Compile the canonical state of one claim."
+    )
+    claim_state.add_argument("claim_id")
+    claim_state.add_argument("--json", action="store_true")
+    claim_state.set_defaults(handler=_cmd_claim_state)
+    claim_explain = claim_commands.add_parser(
+        "explain", help="Render a concise human view of one claim state."
+    )
+    claim_explain.add_argument("claim_id")
+    claim_explain.set_defaults(handler=_cmd_claim_explain)
 
     verify = commands.add_parser("verify", help="Inspect or run trusted verification.")
     verify_commands = verify.add_subparsers(dest="verify_command", required=True)

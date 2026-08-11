@@ -1,0 +1,214 @@
+{
+  "cases": [
+    {
+      "case": "twisted_ribbon_reference_point",
+      "checks": [
+        {
+          "description": "The numerical result remains conditional rather than becoming a proof.",
+          "expected": "conditional_corroborated",
+          "id": "twisted.status",
+          "observed": "conditional_corroborated",
+          "passed": true
+        },
+        {
+          "description": "The result is explicitly limited to a numerical instance.",
+          "expected": "numerical_instance",
+          "id": "twisted.scope",
+          "observed": "numerical_instance",
+          "passed": true
+        },
+        {
+          "description": "Kwant is represented as computational corroboration.",
+          "expected": "corroborated",
+          "id": "twisted.computation",
+          "observed": "corroborated",
+          "passed": true
+        },
+        {
+          "description": "The transitive closure exposes the physical covariance assumption.",
+          "expected": "assumption",
+          "id": "twisted.assumption",
+          "observed": "assumption",
+          "passed": true
+        },
+        {
+          "description": "The Lean-backed lemma remains conditional on its premises.",
+          "expected": "conditional_proven",
+          "id": "twisted.formal_boundary",
+          "observed": "conditional_proven",
+          "passed": true
+        },
+        {
+          "description": "The final state repeats the hidden transitive assumption as an obligation.",
+          "expected": true,
+          "id": "twisted.open_obligation",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "description": "The declared point-symmetry assertion is satisfied.",
+          "expected": "satisfied",
+          "id": "twisted.assertion",
+          "observed": "satisfied",
+          "passed": true
+        },
+        {
+          "description": "Unsigned evidence is not presented as authenticated.",
+          "expected": "unauthenticated",
+          "id": "twisted.provenance",
+          "observed": "unauthenticated",
+          "passed": true
+        },
+        {
+          "description": "Claim and model revisions are committed.",
+          "expected": "committed",
+          "id": "twisted.revisions",
+          "observed": "committed",
+          "passed": true
+        },
+        {
+          "description": "Repeated compilation produces the same canonical object.",
+          "expected": true,
+          "id": "twisted.deterministic",
+          "observed": true,
+          "passed": true
+        }
+      ],
+      "claim_id": "GS-QT-0005",
+      "known_blind_spots": [
+        "Nontrivial transmission is visible in the artifact but was not a declared assertion.",
+        "The correspondence between the written Hamiltonian, the Kwant implementation, and the abstract Lean objects is not formally established.",
+        "One parameter point does not establish symmetry across energies, geometries, or discretizations."
+      ],
+      "observations": {
+        "nontriviality_was_a_declared_assertion": false,
+        "transmission_is_numerically_nontrivial": true,
+        "transmission_values": {
+          "minus_tau": 3.8566995151063965,
+          "plus_tau": 3.8566995151063668
+        }
+      }
+    },
+    {
+      "case": "quantum_fmm_occupancy_regimes",
+      "checks": [
+        {
+          "description": "The finite calculation remains conditional corroboration.",
+          "expected": "conditional_corroborated",
+          "id": "fmm.status",
+          "observed": "conditional_corroborated",
+          "passed": true
+        },
+        {
+          "description": "The result is explicitly limited to a numerical instance.",
+          "expected": "numerical_instance",
+          "id": "fmm.scope",
+          "observed": "numerical_instance",
+          "passed": true
+        },
+        {
+          "description": "The independent-uniform occupancy model remains an assumption.",
+          "expected": "assumption",
+          "id": "fmm.assumption",
+          "observed": "assumption",
+          "passed": true
+        },
+        {
+          "description": "The final state exposes the occupancy assumption as unresolved.",
+          "expected": true,
+          "id": "fmm.open_obligation",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "description": "The positive assertion means that the inconsistent hybrid exceeds its budget.",
+          "expected": "satisfied",
+          "id": "fmm.hybrid_rejected",
+          "observed": "satisfied",
+          "passed": true
+        },
+        {
+          "description": "The hybrid bad-probability bound is above the allowed maximum.",
+          "expected": 6.25e-08,
+          "id": "fmm.hybrid_probability",
+          "observed": 1.0,
+          "passed": true
+        },
+        {
+          "description": "The state says that the result is a finite binomial calculation.",
+          "expected": true,
+          "id": "fmm.finite_limit",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "description": "The state explicitly denies an asymptotic or fermionic conclusion.",
+          "expected": true,
+          "id": "fmm.no_asymptotic_overclaim",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "description": "The finite diagnostic does not falsely depend on the general FMM corollary.",
+          "expected": false,
+          "id": "fmm.graph_separation",
+          "observed": false,
+          "passed": true
+        },
+        {
+          "description": "Unsigned evidence is not presented as authenticated.",
+          "expected": "unauthenticated",
+          "id": "fmm.provenance",
+          "observed": "unauthenticated",
+          "passed": true
+        },
+        {
+          "description": "Repeated compilation produces the same canonical object.",
+          "expected": true,
+          "id": "fmm.deterministic",
+          "observed": true,
+          "passed": true
+        }
+      ],
+      "claim_id": "GS-QF-0007",
+      "known_blind_spots": [
+        "The independent occupancy model is not a model of generic fermionic states.",
+        "The finite diagnostic does not control occupancy throughout kinetic evolution.",
+        "The analytic restricted-circuit error bound remains an assumption."
+      ],
+      "observations": {
+        "constant_mean": {
+          "boxes": 4096,
+          "capacity": 13,
+          "mean_occupancy": 1.0,
+          "near_field_slot_pairs": 692224,
+          "union_bound_bad_probability": 1.8161783036460375e-08
+        },
+        "inconsistent_hybrid": {
+          "boxes": 316,
+          "capacity": 13,
+          "mean_occupancy": 12.962025316455696,
+          "near_field_slot_pairs": 53404,
+          "union_bound_bad_probability": 1.0
+        },
+        "per_call_bad_probability_budget": 6.25e-08,
+        "proportional_mean": {
+          "boxes": 93,
+          "capacity": 89,
+          "mean_occupancy": 44.043010752688176,
+          "near_field_slot_pairs": 736653,
+          "union_bound_bad_probability": 6.137068454828352e-08
+        }
+      }
+    }
+  ],
+  "schema_version": "gitscience-product-validation-v1",
+  "summary": {
+    "blinded_llm_interpretation": "pending",
+    "checks_passed": 21,
+    "checks_total": 21,
+    "decision": "continue_as_research_prototype",
+    "external_human_replication": "pending",
+    "structural_validation_passed": true
+  }
+}

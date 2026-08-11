@@ -1,0 +1,25 @@
+kind: lemma
+title: Local hybrid error bounds accumulate additively
+statement:
+  natural_language: |
+    If the kth hybrid replacement has error at most e_k, repeated replacement
+    of R calls has cumulative error at most the sum of the local bounds.
+  latex: |
+    \forall k:\ d_{k+1}\le d_k+e_k,\quad d_0=0
+    \quad\Longrightarrow\quad
+    d_R\le\sum_{k=1}^{R}e_k.
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0001
+  - GS-QF-0002
+verification:
+  verifier: lean_formal
+  experiment: trusted_proof
+  request:
+    proof: fmm_error_accumulation
+  assertions:
+    - local_error_bounds_accumulate
+limitations:
+  - Lean checks the abstract induction, not the analytic derivation of each e_k.

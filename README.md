@@ -8,19 +8,22 @@ provenance of an argument inspectable, reproducible, and correctable.
 ## What works today
 
 - Direct numerical claims verified by a schema-limited Kwant plugin.
+- Finite independent-occupancy tails checked by a schema-limited quantum-FMM plugin.
 - Staged graphs with exact dependency-revision locks.
-- A bundled formal implication checked by Lean `4.32.2`.
+- Bundled formal implications checked by Lean `4.32.2`.
 - Conditional statuses and transitive `stale` propagation when a premise changes.
+- A deterministic canonical claim state for human and LLM interpretation.
 - Optional advisory review through an external PhysicsIntern + LLM process.
 - Integrity auditing, adversarial tests, and explicit unsigned-evidence warnings.
 
-The reference case studies coherent quantum transport in an effective spinful
-helicoidal ribbon. The current suite has 45 passing tests, including real Kwant
-integration when Kwant is installed.
+The reference cases study coherent transport in a helicoidal ribbon and
+occupancy-controlled quantum fast multipole methods. The test suite includes
+real Kwant integration when Kwant is installed.
 
-The repository currently contains four Python packages:
+The repository currently contains five Python packages:
 
 - `gitscience`: claim, evidence, provenance, Git, and CLI operations;
+- `gitscience_fmm`: a trusted finite-binomial occupancy-tail verifier;
 - `gitscience_kwant`: a trusted verifier plugin for the helicoidal-ribbon case
   study.
 - `gitscience_lean`: a trusted verifier for bundled Lean proof obligations.
@@ -52,9 +55,10 @@ After activating the environment and making `lean` available on `PATH`:
 
 ```bash
 ./examples/twisted-ribbon/run-formal-demo.sh
+./examples/quantum-fmm/run-demo.sh
 ```
 
-The script creates a separate repository under `/tmp`, commits every scientific
+Each script creates a separate repository under `/tmp`, commits every scientific
 step, checks a lemma with Lean, checks a numerical proposition with Kwant, and
 audits the generated evidence. Its final graph distinguishes:
 
@@ -85,6 +89,7 @@ gitscience -C /tmp/twisted-ribbon-science claim create \
 gitscience -C /tmp/twisted-ribbon-science commit \
   -m "Propose energy-replication hypothesis"
 gitscience -C /tmp/twisted-ribbon-science verify GS-QT-0001
+gitscience -C /tmp/twisted-ribbon-science claim explain GS-QT-0001
 gitscience -C /tmp/twisted-ribbon-science review GS-QT-0001 \
   --with physics_intern --model YOUR_PHYSICS_INTERN_MODEL
 ```
@@ -94,11 +99,19 @@ verifier, records hashes and environment metadata, and commits only the
 generated evidence. Use `verify run` to leave evidence uncommitted for manual
 review.
 
-The optional `review` command sends only the committed claim, model, and
-integrity-valid evidence to PhysicsIntern. It records an `RV-*` report and its
-provenance, but that report is explicitly advisory: it cannot authenticate
-evidence or change claim status. PhysicsIntern must be installed in the active
-Python environment and its provider API key must already be exported.
+`claim state CLAIM_ID --json` deterministically compiles the claim, model,
+dependency closure, normalized assertion outcomes, derived status dimensions,
+scope limits, provenance, reviews, and open obligations. `claim explain`
+renders a concise human view from that same object. See the
+[canonical claim-state contract](docs/CLAIM_STATE.md).
+
+The optional `review` command sends that canonical state to PhysicsIntern. It
+records an `RV-*` report and its provenance, but that report is explicitly
+advisory: it cannot authenticate evidence or change claim status. A review can
+interpret a proposed claim with no evidence, but GitScience forces its verdict
+to `INCONCLUSIVE` if the reviewer attempts `VERIFIED` or `REFUTED` in that
+state. PhysicsIntern must be installed in the active Python environment and its
+provider API key must already be exported.
 
 ## Formal argument graph
 
@@ -129,10 +142,21 @@ gitscience commit -m "Relock lemma dependencies"
 gitscience verify GS-QT-0003
 ```
 
-See [the MVP contract](docs/GITSCIENCE_MVP.md) and the
-[twisted-ribbon exercise](examples/twisted-ribbon/README.md). The
+See [the MVP contract](docs/GITSCIENCE_MVP.md), the
+[twisted-ribbon exercise](examples/twisted-ribbon/README.md), and the
+[quantum-FMM occupancy exercise](examples/quantum-fmm/README.md). The
 [security model](docs/SECURITY_MODEL.md) explains the boundary between
 integrity, authentication, and scientific validity.
+
+## Product validation
+
+The reproducible [validation protocol](validation/README.md) rebuilds both case
+studies and tests whether canonical state exposes assumptions, finite scope,
+provenance, and prohibited generalizations. The
+[initial report](docs/VALIDATION_REPORT.md) records 21/21 passing structural
+checks after the protocol uncovered and prompted correction of an important
+formal-verification classification bug. External human replication and blinded
+LLM comparison remain explicitly pending.
 
 ## Prototype boundaries
 

@@ -124,6 +124,44 @@ def test_lean_plugin_runs_bundled_proof(monkeypatch):
     assert verifier.evidence_kind == "formal_proof"
 
 
+def test_lean_elaboration_failure_is_inconclusive_not_contradictory(monkeypatch):
+    verifier = LeanFormalVerifier()
+    monkeypatch.setattr("gitscience_lean.plugin.shutil.which", lambda name: "/bin/lean")
+
+    def fake_run(command, **kwargs):
+        if "--version" in command:
+            return subprocess.CompletedProcess(command, 0, "Lean 4.test\n", "")
+        return subprocess.CompletedProcess(command, 1, "", "type mismatch")
+
+    monkeypatch.setattr("gitscience_lean.plugin.subprocess.run", fake_run)
+    result = verifier.run(
+        "trusted_proof", {"proof": "twist_transport_symmetry"}
+    )
+
+    claim = result["claims"]["transport_symmetry_implies_even_transmission"]
+    assert claim["passes"] is None
+    assert result["diagnostics"]["elaboration_succeeded"] is False
+    assert result["diagnostics"]["assertion_established"] is False
+
+
+def test_lean_plugin_selects_fmm_accumulation_proof(monkeypatch):
+    verifier = LeanFormalVerifier()
+    monkeypatch.setattr("gitscience_lean.plugin.shutil.which", lambda name: "/bin/lean")
+
+    def fake_run(command, **kwargs):
+        if "--version" in command:
+            return subprocess.CompletedProcess(command, 0, "Lean 4.test\n", "")
+        assert command[-1].endswith("fmm_error_accumulation.lean")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("gitscience_lean.plugin.subprocess.run", fake_run)
+    result = verifier.run("trusted_proof", {"proof": "fmm_error_accumulation"})
+
+    claim = result["claims"]["local_error_bounds_accumulate"]
+    assert claim["passes"] is True
+    assert claim["proof"] == "fmm_error_accumulation"
+
+
 def test_dependency_change_makes_formal_result_stale(tmp_path, monkeypatch):
     repo = _repo(tmp_path)
     definition = repo.create_claim(_node(tmp_path, "definition", "definition"))

@@ -1,0 +1,18 @@
+kind: conjecture
+title: Generic spin sectors require coincident-position handling
+statement:
+  natural_language: |
+    In a generic spinful electronic sector, opposite-spin electrons may occupy
+    the same spatial grid point, so an adaptive leaf construction must state
+    how coincident positions are represented or excluded.
+  latex: |
+    r_i=r_j,\ \sigma_i\ne\sigma_j
+    \quad\not\Rightarrow\quad
+    \Psi(r_i,\sigma_i;r_j,\sigma_j)=0.
+topic: QF
+model: quantum-fmm-occupancy-v1
+scope: general
+depends_on:
+  - GS-QF-0001
+limitations:
+  - This records a model-scope obligation, not a demonstrated error in the source paper.

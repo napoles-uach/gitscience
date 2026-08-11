@@ -2,7 +2,7 @@
 
 GitScience versions scientific claims and computational attestations in an
 ordinary Git repository. The MVP is local and supports trusted
-`kwant_transport` and `lean_formal` verifier plugins. The core is
+`kwant_transport`, `fmm_occupancy`, and `lean_formal` verifier plugins. The core is
 verifier-independent and loads plugins through the `gitscience.verifiers`
 entry-point group.
 
@@ -14,6 +14,8 @@ entry-point group.
 4. Uncommitted claim or model revisions cannot be verified.
 5. Downloaded claims cannot provide Python or shell code to this verifier.
 6. A status is derived from evidence for the current claim hash.
+7. Human and LLM views consume the same deterministic canonical claim state.
+8. An advisory reviewer cannot change derived status.
 
 The derived statuses are:
 
@@ -61,11 +63,14 @@ gitscience claim log CLAIM_ID
 gitscience claim graph
 gitscience claim obligations
 gitscience claim relock CLAIM_ID
+gitscience claim state CLAIM_ID [--json]
+gitscience claim explain CLAIM_ID
 gitscience verify CLAIM_ID [CLAIM_ID ...]       # verify and commit evidence
 gitscience verify inspect CLAIM_ID
 gitscience verify run CLAIM_ID [CLAIM_ID ...]   # leave evidence uncommitted
 gitscience evidence show EVIDENCE_ID
 gitscience evidence list [--claim CLAIM_ID]
+gitscience review CLAIM_ID --with REVIEWER [--model MODEL]
 gitscience audit [--claim CLAIM_ID] [--require-authenticated]
 gitscience status
 gitscience diff
@@ -116,6 +121,14 @@ The trusted Kwant plugin currently exposes two experiment contracts:
 |---|---|
 | `point_symmetry` | Compare `+tau`, `-tau`, zero twist, and zero SOC at one parameter point |
 | `small_twist_scaling` | Fit paired small-twist data to declared linear/quadratic scaling tests |
+
+The trusted `fmm_occupancy` plugin exposes one finite, schema-limited contract:
+
+| Experiment | Purpose |
+|---|---|
+| `independent_occupancy_regimes` | Compute finite binomial occupancy tails for two valid box regimes and reject their inconsistent hybrid |
+
+See [`examples/quantum-fmm/README.md`](../examples/quantum-fmm/README.md).
 
 ## Deliberate MVP limits
 
