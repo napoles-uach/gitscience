@@ -54,7 +54,7 @@ gitscience_lean = ["proofs/*.lean"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 
 [tool.coverage.run]
 branch = true
