@@ -1,5 +1,11 @@
 kind: assumption
+study: twisted-ribbon
+role: assumption
 title: Scattering covariance under twist reversal
+question: What physical covariance would be sufficient to relate opposite twists?
+plain_language_conclusion: The required covariance is stated explicitly as a premise rather than presented as a derived result.
+scope_summary: The premise concerns the declared model, leads, and boundary conditions.
+remaining_uncertainty: The covariance has not been independently proved for the physical implementation.
 statement:
   natural_language: |
     Assume that reversing the twist transforms the scattering representation

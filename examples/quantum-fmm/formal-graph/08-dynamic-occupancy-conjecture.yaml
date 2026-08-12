@@ -1,5 +1,11 @@
 kind: conjecture
+study: quantum-fmm
+role: open_question
 title: Kinetic evolution admits a useful occupancy-tail bound
+question: Can occupancy overflow be controlled throughout kinetic evolution from accessible initial data?
+plain_language_conclusion: No such bound is established; the desired relationship is recorded as an open conjecture.
+scope_summary: The conjecture targets general kinetic evolution in the declared occupancy model.
+remaining_uncertainty: The kinetic operator need not preserve the capacity-limited subspace.
 statement:
   natural_language: |
     Seek a bound on bad-box probability throughout kinetic evolution using

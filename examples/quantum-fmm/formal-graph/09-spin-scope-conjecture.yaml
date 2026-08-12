@@ -1,5 +1,11 @@
 kind: conjecture
+study: quantum-fmm
+role: limitation
 title: Generic spin sectors require coincident-position handling
+question: How should an adaptive spatial decomposition handle opposite-spin particles at the same position?
+plain_language_conclusion: The case study identifies this as a scope obligation rather than resolving it.
+scope_summary: The issue concerns generic spinful sectors with coincident spatial positions.
+remaining_uncertainty: The representation or exclusion of coincident positions remains unspecified.
 statement:
   natural_language: |
     In a generic spinful electronic sector, opposite-spin electrons may occupy

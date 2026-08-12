@@ -19,6 +19,7 @@ collects information already present in the repository and makes important
 distinctions explicit:
 
 - the exact claim and model revisions;
+- the versioned study narrative and claim role, when declared;
 - the transitive dependency closure and locked assumptions;
 - the derived status and separate logical, computational, dependency,
   provenance, review, and revision dimensions;
@@ -27,6 +28,8 @@ distinctions explicit:
 - committed advisory reviews that target the current claim hash and retain a
   matching artifact digest;
 - conditions, limitations, and open obligations;
+- the research question, plain-language conclusion, scope summary, and
+  remaining uncertainty;
 - an interpretation policy stating that reviews cannot change status.
 
 Inspect either representation with:
@@ -39,6 +42,22 @@ gitscience claim explain GS-QT-0005
 The JSON form is the integration boundary for agents, search indexes, and
 future registry APIs. Its output is stable while repository contents remain
 unchanged; it contains no compilation timestamp or model-generated field.
+
+Study narrative is stored in `studies/STUDY_ID.yaml`, while claim-specific
+narrative and `role` live in the claim record. These fields are explanatory:
+they are versioned and exposed to agents, but they cannot alter derived status.
+The `revision` dimension becomes `uncommitted` if the claim, model, or linked
+study manifest has local changes.
+
+Registry consumers should use the canonical exporter rather than assembling
+claim summaries by hand:
+
+```bash
+gitscience registry export --claim GS-QT-0005 --output registry.json
+```
+
+Each study in that snapshot contains a complete `claim_index` plus coverage
+metadata indicating how many claims have full states in the exported subset.
 
 ## Reading the dimensions
 

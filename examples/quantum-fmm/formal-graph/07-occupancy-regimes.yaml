@@ -1,5 +1,11 @@
 kind: numerical_proposition
+study: quantum-fmm
+role: main_result
 title: Constant-mean and proportional-mean box regimes must not be conflated
+question: Can two consistent box-scaling regimes meet the same finite tail budget, and what happens if their parameters are mixed?
+plain_language_conclusion: Both consistent regimes meet the selected budget, while reusing the constant-mean capacity after reducing the box count fails it.
+scope_summary: This is a finite independent-occupancy calculation for 4096 particles and 20 calls.
+remaining_uncertainty: It does not prove asymptotic complexity, dynamic occupancy control, or a fermionic occupancy law.
 statement:
   natural_language: |
     For 4096 independent particles, 20 calls, and tail error budget 0.01, both

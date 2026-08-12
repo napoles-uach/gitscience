@@ -1,5 +1,11 @@
 kind: definition
+study: quantum-fmm
+role: definition
 title: Quantum-FMM occupancy subspace and error observables
+question: Which occupancy and error quantities are used in the argument?
+plain_language_conclusion: The capacity-limited subspace and pre-call overflow probability are defined for later bounds.
+scope_summary: This is a definition on a finite first-quantized real-space grid.
+remaining_uncertainty: The definitions do not establish that realistic states remain in the good subspace.
 statement:
   natural_language: |
     Define the leaf-box occupancy operators, the capacity-c good subspace,

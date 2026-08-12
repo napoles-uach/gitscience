@@ -1,5 +1,11 @@
 kind: lemma
+study: quantum-fmm
+role: supporting_result
 title: Local hybrid error bounds accumulate additively
+question: How do declared local replacement errors combine across repeated calls?
+plain_language_conclusion: Lean proves that the cumulative error is at most the sum of supplied local bounds.
+scope_summary: This is a general abstract induction over declared local error premises.
+remaining_uncertainty: The proof does not derive the physical or analytic value of each local bound.
 statement:
   natural_language: |
     If the kth hybrid replacement has error at most e_k, repeated replacement

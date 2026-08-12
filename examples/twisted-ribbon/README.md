@@ -8,6 +8,8 @@ gitscience -C /tmp/twisted-ribbon-science topic create \
   "Quantum transport in twisted ribbons" --code QT
 gitscience -C /tmp/twisted-ribbon-science model create \
   helicoidal-ribbon-v1 --from examples/twisted-ribbon/model.yaml
+gitscience -C /tmp/twisted-ribbon-science study create \
+  twisted-ribbon --from examples/twisted-ribbon/study.yaml
 gitscience -C /tmp/twisted-ribbon-science claim create \
   --from examples/twisted-ribbon/claim-transmission.yaml
 gitscience -C /tmp/twisted-ribbon-science claim create \
@@ -53,8 +55,12 @@ repository, commit them, and run:
 gitscience verify GS-QT-0003
 gitscience verify GS-QT-0005
 gitscience claim graph
+gitscience registry export --claim GS-QT-0003 --claim GS-QT-0005 \
+  --output twisted-ribbon-registry.json
 ```
 
 Lean proves only the implication encoded by the lemma. The model-specific
 scattering covariance remains an explicit assumption rather than being hidden
 inside the formal verdict.
+The exported registry discloses that the two full claim states are a curated
+subset of the five-node study graph.

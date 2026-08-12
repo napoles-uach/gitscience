@@ -1,0 +1,13 @@
+name: Quantum-FMM occupancy
+research_question: |
+  When can a capacity-limited non-adaptive quantum fast multipole method meet a
+  declared error budget, and which occupancy assumptions are needed?
+approach_summary: |
+  Decompose the argument into a restricted-call assumption, a Lean-checked
+  accumulation lemma, an occupancy-tail lemma, a combined conditional bound,
+  and a finite independent-occupancy diagnostic for two box regimes.
+resolution_summary: |
+  The abstract local errors accumulate additively, and two internally
+  consistent finite occupancy regimes meet the selected tail budget. This does
+  not establish the local analytic bound, dynamic occupancy control, or a
+  general fermionic occupancy theorem.

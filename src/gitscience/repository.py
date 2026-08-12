@@ -28,6 +28,31 @@ CLAIM_KINDS = frozenset(
         "numerical_proposition",
     }
 )
+CLAIM_ROLES = frozenset(
+    {
+        "background",
+        "definition",
+        "assumption",
+        "supporting_result",
+        "main_result",
+        "limitation",
+        "open_question",
+    }
+)
+STUDY_REQUIRED_FIELDS = frozenset(
+    {
+        "name",
+        "research_question",
+        "approach_summary",
+        "resolution_summary",
+    }
+)
+CLAIM_NARRATIVE_FIELDS = (
+    "question",
+    "plain_language_conclusion",
+    "scope_summary",
+    "remaining_uncertainty",
+)
 
 
 class RepositoryError(RuntimeError):
@@ -66,6 +91,7 @@ class GitScienceRepository:
         for directory in (
             "topics",
             "models",
+            "studies",
             "claims",
             "evidence",
             "artifacts",
@@ -130,6 +156,10 @@ class GitScienceRepository:
     def _load_config(self) -> dict[str, Any]:
         return json.loads(self.config_path.read_text())
 
+    @property
+    def name(self) -> str:
+        return str(self._load_config()["name"])
+
     def _save_config(self, config: dict[str, Any]) -> None:
         self.config_path.write_text(json.dumps(config, indent=2, sort_keys=True) + "\n")
 
@@ -176,6 +206,23 @@ class GitScienceRepository:
         self.write_yaml(path, model)
         return model
 
+    def create_study(self, study_id: str, source: Path) -> dict[str, Any]:
+        study_id = _validate_identifier(study_id, "study ID")
+        path = self.study_path(study_id)
+        if path.exists():
+            raise RepositoryError(f"Study already exists: {study_id}")
+        study = self.load_yaml(source)
+        missing = sorted(STUDY_REQUIRED_FIELDS - set(study))
+        if missing:
+            raise RepositoryError(f"Study is missing fields: {', '.join(missing)}")
+        for field in STUDY_REQUIRED_FIELDS:
+            self._validate_non_empty_text(study[field], f"study.{field}")
+        study["schema_version"] = "gitscience-study-v1"
+        study["id"] = study_id
+        study.setdefault("created_at", _now())
+        self.write_yaml(path, study)
+        return study
+
     def create_claim(self, source: Path) -> dict[str, Any]:
         claim = self.load_yaml(source)
         required = {"title", "statement", "topic", "model", "scope"}
@@ -194,6 +241,23 @@ class GitScienceRepository:
         if not isinstance(claim["title"], str) or not claim["title"].strip():
             raise RepositoryError("Claim title must be a non-empty string")
         self._validate_statement(claim["statement"])
+        study_id = claim.get("study")
+        if study_id is not None:
+            if not isinstance(study_id, str):
+                raise RepositoryError("Claim study must be a study ID")
+            study_id = _validate_identifier(study_id, "study ID")
+            self.load_study(study_id)
+            claim["study"] = study_id
+        role = claim.get("role")
+        if role is not None and role not in CLAIM_ROLES:
+            raise RepositoryError(
+                f"Claim role must be one of: {', '.join(sorted(CLAIM_ROLES))}"
+            )
+        if role is not None and study_id is None:
+            raise RepositoryError("Claim role requires a study reference")
+        for field in CLAIM_NARRATIVE_FIELDS:
+            if field in claim:
+                self._validate_non_empty_text(claim[field], f"claim.{field}")
         if claim["scope"] not in {"numerical_instance", "general"}:
             raise RepositoryError("Claim scope must be numerical_instance or general")
         kind = claim.get("kind", "proposition")
@@ -329,6 +393,11 @@ class GitScienceRepository:
             raise RepositoryError(f"Claim dependencies are not locked: {detail}")
 
     @staticmethod
+    def _validate_non_empty_text(value: Any, label: str) -> None:
+        if not isinstance(value, str) or not value.strip():
+            raise RepositoryError(f"{label} must be a non-empty string")
+
+    @staticmethod
     def _validate_statement(statement: Any) -> None:
         if isinstance(statement, str):
             if statement.strip():
@@ -380,6 +449,13 @@ class GitScienceRepository:
             self.root / "models" / f"{_validate_identifier(model_id, 'model ID')}.yaml"
         )
 
+    def study_path(self, study_id: str) -> Path:
+        return (
+            self.root
+            / "studies"
+            / f"{_validate_identifier(study_id, 'study ID')}.yaml"
+        )
+
     def evidence_path(self, evidence_id: str) -> Path:
         identifier = _validate_identifier(evidence_id, "evidence ID")
         return self.root / "evidence" / f"{identifier}.json"
@@ -398,6 +474,12 @@ class GitScienceRepository:
         path = self.model_path(model_id)
         if not path.exists():
             raise RepositoryError(f"Unknown model: {model_id}")
+        return self.load_yaml(path)
+
+    def load_study(self, study_id: str) -> dict[str, Any]:
+        path = self.study_path(study_id)
+        if not path.exists():
+            raise RepositoryError(f"Unknown study: {study_id}")
         return self.load_yaml(path)
 
     def next_evidence_id(self) -> str:

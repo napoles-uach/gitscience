@@ -11,6 +11,7 @@ from pathlib import Path
 
 import yaml
 
+from .registry import compile_registry, merge_registry_snapshots
 from .repository import GitScienceRepository, RepositoryError
 from .review import ReviewError, inspect_review, review_claim
 from .reviewers import ReviewerError
@@ -87,6 +88,25 @@ def _cmd_topic_list(args: argparse.Namespace) -> int:
 def _cmd_model_create(args: argparse.Namespace) -> int:
     model = _repository(args).create_model(args.model_id, args.source)
     print(f"Created model {model['id']}")
+    return 0
+
+
+def _cmd_study_create(args: argparse.Namespace) -> int:
+    study = _repository(args).create_study(args.study_id, args.source)
+    print(f"Created study {study['id']}: {study['name']}")
+    return 0
+
+
+def _cmd_study_list(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    for path in sorted((repo.root / "studies").glob("*.yaml")):
+        study = repo.load_yaml(path)
+        print(f"{study['id']}\t{study['name']}")
+    return 0
+
+
+def _cmd_study_show(args: argparse.Namespace) -> int:
+    _print_yaml(_repository(args).load_study(args.study_id))
     return 0
 
 
@@ -170,6 +190,26 @@ def _cmd_claim_state(args: argparse.Namespace) -> int:
 def _cmd_claim_explain(args: argparse.Namespace) -> int:
     state = compile_claim_state(_repository(args), args.claim_id)
     print(explain_claim_state(state))
+    return 0
+
+
+def _cmd_registry_export(args: argparse.Namespace) -> int:
+    snapshot = compile_registry(_repository(args), args.claim, args.source_url)
+    output = json.dumps(snapshot, indent=2, sort_keys=True) + "\n"
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(output)
+        print(f"Exported registry snapshot: {args.output}")
+    else:
+        print(output, end="")
+    return 0
+
+
+def _cmd_registry_merge(args: argparse.Namespace) -> int:
+    snapshot = merge_registry_snapshots(args.inputs)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n")
+    print(f"Merged registry snapshot: {args.output}")
     return 0
 
 
@@ -364,6 +404,18 @@ def build_parser() -> argparse.ArgumentParser:
     model_create.add_argument("--from", dest="source", type=Path, required=True)
     model_create.set_defaults(handler=_cmd_model_create)
 
+    study = commands.add_parser("study", help="Manage scientific studies.")
+    study_commands = study.add_subparsers(dest="study_command", required=True)
+    study_create = study_commands.add_parser("create")
+    study_create.add_argument("study_id")
+    study_create.add_argument("--from", dest="source", type=Path, required=True)
+    study_create.set_defaults(handler=_cmd_study_create)
+    study_list = study_commands.add_parser("list")
+    study_list.set_defaults(handler=_cmd_study_list)
+    study_show = study_commands.add_parser("show")
+    study_show.add_argument("study_id")
+    study_show.set_defaults(handler=_cmd_study_show)
+
     claim = commands.add_parser("claim", help="Manage scientific claims.")
     claim_commands = claim.add_subparsers(dest="claim_command", required=True)
     claim_create = claim_commands.add_parser("create")
@@ -403,6 +455,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     claim_explain.add_argument("claim_id")
     claim_explain.set_defaults(handler=_cmd_claim_explain)
+
+    registry = commands.add_parser(
+        "registry", help="Export canonical records for a public registry."
+    )
+    registry_commands = registry.add_subparsers(
+        dest="registry_command", required=True
+    )
+    registry_export = registry_commands.add_parser("export")
+    registry_export.add_argument("--claim", action="append")
+    registry_export.add_argument("--output", type=Path)
+    registry_export.add_argument("--source-url")
+    registry_export.set_defaults(handler=_cmd_registry_export)
+    registry_merge = registry_commands.add_parser("merge")
+    registry_merge.add_argument("inputs", nargs="+", type=Path)
+    registry_merge.add_argument("--output", type=Path, required=True)
+    registry_merge.set_defaults(handler=_cmd_registry_merge)
 
     verify = commands.add_parser("verify", help="Inspect or run trusted verification.")
     verify_commands = verify.add_subparsers(dest="verify_command", required=True)

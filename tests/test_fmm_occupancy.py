@@ -101,6 +101,7 @@ def test_quantum_fmm_examples_form_and_verify_staged_graph(tmp_path, monkeypatch
     repo.git(["config", "user.name", "FMM Test"])
     repo.create_topic("Quantum fast multipole methods", "QF")
     repo.create_model("quantum-fmm-occupancy-v1", example / "model.yaml")
+    repo.create_study("quantum-fmm", example / "study.yaml")
 
     claims = []
     for source in sorted((example / "formal-graph").glob("*.yaml")):

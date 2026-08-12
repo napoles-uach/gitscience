@@ -1,5 +1,11 @@
 kind: corollary
+study: twisted-ribbon
+role: supporting_result
 title: Even transmission for the declared helicoidal model
+question: What model-level conclusion follows when the covariance premise is applied?
+plain_language_conclusion: The model has even transmission under twist reversal if the declared covariance holds.
+scope_summary: The conclusion is general within the declared model but remains conditional.
+remaining_uncertainty: The model-specific covariance still needs independent establishment.
 statement:
   natural_language: |
     Under the declared scattering-covariance assumption, the model's total

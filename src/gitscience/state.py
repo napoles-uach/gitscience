@@ -47,6 +47,7 @@ def _dependency_closure(
         nodes[claim_id] = {
             "id": claim_id,
             "kind": claim.get("kind", "proposition"),
+            "role": claim.get("role"),
             "title": claim["title"],
             "statement": claim["statement"],
             "scope": claim["scope"],
@@ -335,8 +336,11 @@ def compile_claim_state(
     """Compile the current repository state without invoking an LLM."""
     claim = repo.load_claim(claim_id)
     model = repo.load_model(claim["model"])
+    study_id = claim.get("study")
+    study = repo.load_study(study_id) if study_id else None
     claim_revision = _revision(repo, repo.claim_path(claim_id))
     model_revision = _revision(repo, repo.model_path(claim["model"]))
+    study_revision = _revision(repo, repo.study_path(study_id)) if study_id else None
     evidence = _current_evidence(repo, claim_id, claim_revision["sha256"])
     reviews = _current_reviews(repo, claim_id, claim_revision["sha256"])
     dependency_report = repo.dependency_report(claim_id)
@@ -345,6 +349,9 @@ def compile_claim_state(
         claim, dependency_report, dependency_closure, evidence
     )
     derived_status = repo.claim_status(claim_id)
+    revision_states = [claim_revision["state"], model_revision["state"]]
+    if study_revision is not None:
+        revision_states.append(study_revision["state"])
 
     status_reasons = list(dependency_report["reasons"])
     status_reasons.extend(
@@ -358,9 +365,28 @@ def compile_claim_state(
         "claim": {
             "id": claim_id,
             "title": claim["title"],
+            "role": claim.get("role"),
             "statement_text": _statement_text(claim["statement"]),
             "record": claim,
             "revision": claim_revision,
+        },
+        "study": (
+            {
+                "id": study_id,
+                "record": study,
+                "revision": study_revision,
+            }
+            if study is not None
+            else None
+        ),
+        "narrative": {
+            "research_question": (
+                study.get("research_question") if study is not None else None
+            ),
+            "claim_question": claim.get("question"),
+            "plain_language_conclusion": claim.get("plain_language_conclusion"),
+            "scope_summary": claim.get("scope_summary"),
+            "remaining_uncertainty": claim.get("remaining_uncertainty"),
         },
         "model": {
             "id": model["id"],
@@ -377,7 +403,7 @@ def compile_claim_state(
                 "review": "advisory_available" if reviews else "unreviewed",
                 "revision": (
                     "committed"
-                    if claim_revision["state"] == model_revision["state"] == "committed"
+                    if all(value == "committed" for value in revision_states)
                     else "uncommitted"
                 ),
             },
@@ -411,9 +437,17 @@ def explain_claim_state(state: dict[str, Any]) -> str:
         f"{claim['id']} - {claim['title']}",
         f"State: {state['status']['derived']}",
         f"Claim: {claim['statement_text']}",
-        "",
-        "Dimensions:",
     ]
+    narrative = state.get("narrative", {})
+    if narrative.get("research_question"):
+        lines.extend(["", f"Research question: {narrative['research_question']}"])
+    if narrative.get("plain_language_conclusion"):
+        lines.append(f"Resolution: {narrative['plain_language_conclusion']}")
+    if narrative.get("scope_summary"):
+        lines.append(f"Scope: {narrative['scope_summary']}")
+    if narrative.get("remaining_uncertainty"):
+        lines.append(f"Still open: {narrative['remaining_uncertainty']}")
+    lines.extend(["", "Dimensions:"])
     lines.extend(f"  {name}: {value}" for name, value in dimensions.items())
 
     lines.extend(["", "Evidence:"])

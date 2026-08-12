@@ -1,5 +1,11 @@
 kind: lemma
+study: quantum-fmm
+role: supporting_result
 title: Box overflow is bounded by local factorial moments
+question: How can overflow probability be related to reduced-density information?
+plain_language_conclusion: A union bound expresses overflow through local factorial moments under the stated normalization.
+scope_summary: The statement is a general analytic lemma for the defined occupancy observables.
+remaining_uncertainty: The continuum reduced-density statement is not checked by the bundled Lean proof.
 statement:
   natural_language: |
     The probability that any leaf box contains more than c particles is

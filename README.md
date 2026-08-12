@@ -13,6 +13,8 @@ provenance of an argument inspectable, reproducible, and correctable.
 - Bundled formal implications checked by Lean `4.32.2`.
 - Conditional statuses and transitive `stale` propagation when a premise changes.
 - A deterministic canonical claim state for human and LLM interpretation.
+- Versioned study narratives and claim roles for standalone interpretation.
+- Registry snapshots with explicit shown-versus-total coverage.
 - Optional advisory review through an external PhysicsIntern + LLM process.
 - Integrity auditing, adversarial tests, and explicit unsigned-evidence warnings.
 
@@ -84,6 +86,8 @@ gitscience -C /tmp/twisted-ribbon-science topic create \
   "Quantum transport in twisted ribbons" --code QT
 gitscience -C /tmp/twisted-ribbon-science model create \
   helicoidal-ribbon-v1 --from examples/twisted-ribbon/model.yaml
+gitscience -C /tmp/twisted-ribbon-science study create \
+  twisted-ribbon --from examples/twisted-ribbon/study.yaml
 gitscience -C /tmp/twisted-ribbon-science claim create \
   --from examples/twisted-ribbon/claim-energy-replication.yaml
 gitscience -C /tmp/twisted-ribbon-science commit \
@@ -104,6 +108,20 @@ dependency closure, normalized assertion outcomes, derived status dimensions,
 scope limits, provenance, reviews, and open obligations. `claim explain`
 renders a concise human view from that same object. See the
 [canonical claim-state contract](docs/CLAIM_STATE.md).
+
+For a public index, export selected full claim states while retaining the
+complete study-level claim index and an explicit coverage count:
+
+```bash
+gitscience -C /tmp/twisted-ribbon-science registry export \
+  --claim GS-QT-0003 --claim GS-QT-0005 \
+  --source-url https://github.com/OWNER/STUDY/tree/COMMIT \
+  --output registry.json
+```
+
+The resulting `gitscience-observatory-v1` document reports `shown`, `total`,
+and `is_complete` per study. A partial demo therefore cannot silently present
+itself as the complete argument graph.
 
 The optional `review` command sends that canonical state to PhysicsIntern. It
 records an `RV-*` report and its provenance, but that report is explicitly

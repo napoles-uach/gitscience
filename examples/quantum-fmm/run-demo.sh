@@ -18,6 +18,8 @@ gitscience -C "$TARGET" topic create \
   "Occupancy-controlled quantum fast multipole methods" --code QF
 gitscience -C "$TARGET" model create quantum-fmm-occupancy-v1 \
   --from "$SCRIPT_DIR/model.yaml"
+gitscience -C "$TARGET" study create quantum-fmm \
+  --from "$SCRIPT_DIR/study.yaml"
 
 messages=(
   "Define quantum-FMM occupancy model"

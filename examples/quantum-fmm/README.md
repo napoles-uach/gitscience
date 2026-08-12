@@ -21,6 +21,15 @@ GitScience and making Lean available on `PATH`:
 ./examples/quantum-fmm/run-demo.sh /tmp/gitscience-quantum-fmm-demo
 ```
 
+Export the two headline evidence records while retaining the complete nine-node
+study index:
+
+```bash
+gitscience -C /tmp/gitscience-quantum-fmm-demo registry export \
+  --claim GS-QF-0003 --claim GS-QF-0007 \
+  --output quantum-fmm-registry.json
+```
+
 The occupancy verifier accepts only six bounded numeric fields and never runs
 repository-supplied code. For the declared instance it computes finite binomial
 tails and a union bound. It distinguishes:

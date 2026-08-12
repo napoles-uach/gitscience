@@ -1,5 +1,11 @@
 kind: assumption
+study: quantum-fmm
+role: assumption
 title: Restricted non-adaptive FMM call has controlled error
+question: What local approximation bound is required on the capacity-limited subspace?
+plain_language_conclusion: A per-call norm bound is made explicit as an assumption.
+scope_summary: The assumption applies only on the declared good subspace.
+remaining_uncertainty: Correctness of the concrete non-adaptive circuit on that subspace is not established.
 statement:
   natural_language: |
     Assume that each ideal and approximate potential call is norm preserving

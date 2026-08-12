@@ -16,6 +16,8 @@ entry-point group.
 6. A status is derived from evidence for the current claim hash.
 7. Human and LLM views consume the same deterministic canonical claim state.
 8. An advisory reviewer cannot change derived status.
+9. Study narrative is versioned but cannot change derived status.
+10. A registry export must disclose partial claim coverage.
 
 The derived statuses are:
 
@@ -40,6 +42,7 @@ see [`SECURITY_MODEL.md`](SECURITY_MODEL.md) before automated ingestion.
 .gitscience/config.json
 topics/QT.yaml
 models/helicoidal-ribbon-v1.yaml
+studies/twisted-ribbon.yaml
 claims/GS-QT-0001.yaml
 evidence/EV-000001.json
 artifacts/EV-000001.kwant.json
@@ -56,6 +59,9 @@ gitscience init PATH [--name NAME]
 gitscience topic create NAME --code CODE
 gitscience topic list
 gitscience model create MODEL_ID --from MODEL.yaml
+gitscience study create STUDY_ID --from STUDY.yaml
+gitscience study list
+gitscience study show STUDY_ID
 gitscience claim create --from CLAIM.yaml
 gitscience claim list
 gitscience claim show CLAIM_ID
@@ -65,6 +71,8 @@ gitscience claim obligations
 gitscience claim relock CLAIM_ID
 gitscience claim state CLAIM_ID [--json]
 gitscience claim explain CLAIM_ID
+gitscience registry export [--claim CLAIM_ID ...] [--output FILE]
+gitscience registry merge SNAPSHOT... --output FILE
 gitscience verify CLAIM_ID [CLAIM_ID ...]       # verify and commit evidence
 gitscience verify inspect CLAIM_ID
 gitscience verify run CLAIM_ID [CLAIM_ID ...]   # leave evidence uncommitted

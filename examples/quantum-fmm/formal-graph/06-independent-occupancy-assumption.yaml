@@ -1,5 +1,11 @@
 kind: assumption
+study: quantum-fmm
+role: assumption
 title: Independent uniform occupancy model for a finite diagnostic
+question: Which tractable occupancy model is used for the finite calculation?
+plain_language_conclusion: The diagnostic treats particle assignments to boxes as independent and uniform.
+scope_summary: This premise is restricted to the finite numerical diagnostic.
+remaining_uncertainty: It is not a model of generic correlated or fermionic electronic states.
 statement:
   natural_language: |
     For the finite diagnostic only, model eta particles as independently and

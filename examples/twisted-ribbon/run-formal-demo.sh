@@ -18,6 +18,8 @@ gitscience -C "$TARGET" topic create \
   "Quantum transport in twisted ribbons" --code QT
 gitscience -C "$TARGET" model create helicoidal-ribbon-v1 \
   --from "$SCRIPT_DIR/model.yaml"
+gitscience -C "$TARGET" study create twisted-ribbon \
+  --from "$SCRIPT_DIR/study.yaml"
 
 messages=(
   "Define transport model"

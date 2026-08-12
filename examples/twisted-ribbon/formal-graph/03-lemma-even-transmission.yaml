@@ -1,5 +1,11 @@
 kind: lemma
+study: twisted-ribbon
+role: supporting_result
 title: Scattering covariance implies even transmission
+question: Does the covariance premise logically imply even total transmission?
+plain_language_conclusion: Yes. Lean checks the abstract implication from covariance and transmission invariance to even transmission.
+scope_summary: This is a general logical implication conditional on its premises.
+remaining_uncertainty: Lean does not establish that the physical model satisfies the covariance premise.
 statement:
   natural_language: |
     If scattering is covariant under twist reversal and transmission is

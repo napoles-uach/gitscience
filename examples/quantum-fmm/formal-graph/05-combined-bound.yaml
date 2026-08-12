@@ -1,5 +1,11 @@
 kind: corollary
+study: quantum-fmm
+role: supporting_result
 title: Conditional quantum-FMM error bound from occupancy tails
+question: What final error bound follows from the local approximation and occupancy-tail premises?
+plain_language_conclusion: The final error is bounded by accumulated good-subspace errors and ideal-state occupancy tails.
+scope_summary: The result is general in form but conditional on every cited premise.
+remaining_uncertainty: It does not infer all intermediate occupancy tails from the initial state.
 statement:
   natural_language: |
     Combining the restricted local error, hybrid accumulation, and RDM tail

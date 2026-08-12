@@ -1,5 +1,11 @@
 kind: numerical_proposition
+study: twisted-ribbon
+role: main_result
 title: Reference-point transmission is even under twist reversal
+question: Does the Kwant model show equal transmission for opposite twists at the selected parameter point?
+plain_language_conclusion: Yes. The two transmissions agree within 1e-7 at the declared energy, geometry, and couplings.
+scope_summary: This corroborates one finite numerical instance, not all energies or ribbon geometries.
+remaining_uncertainty: Wider parameter sweeps and an independent derivation of covariance are still required.
 statement:
   natural_language: |
     At the declared parameter point, total transmission agrees under twist

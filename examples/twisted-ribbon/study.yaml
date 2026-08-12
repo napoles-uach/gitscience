@@ -1,0 +1,13 @@
+name: Twisted ribbon transport
+research_question: |
+  Does reversing the sign of a ribbon's twist leave its total two-terminal
+  transmission unchanged, and what is actually established by formal and
+  numerical checks?
+approach_summary: |
+  Separate the model definition, a physical covariance assumption, the formal
+  implication checked by Lean, the model-level corollary, and a finite Kwant
+  calculation at one declared parameter point.
+resolution_summary: |
+  Lean establishes that the declared covariance implies even transmission,
+  and Kwant corroborates even transmission at the reference point. The
+  covariance itself and generality across energies and geometries remain open.
