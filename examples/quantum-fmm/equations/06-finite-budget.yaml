@@ -1,0 +1,19 @@
+schema_version: gitscience-equation-v1
+id: EQ-QF-0006
+study: quantum-fmm
+role: numerical_result
+latex: |
+  p_{\mathrm{target}}=
+  \left(\frac{0.01}{2\cdot20}\right)^2=6.25\times10^{-8}
+plain_language: |
+  The numerical diagnostic translates the selected accumulated tail budget
+  into a sufficient per-call overflow target for 20 calls.
+depends_on:
+  - EQ-QF-0005
+claim_ids:
+  - GS-QF-0006
+  - GS-QF-0007
+correspondence:
+  - type: fmm_occupancy
+    target: independent_occupancy_regimes
+    status: executable

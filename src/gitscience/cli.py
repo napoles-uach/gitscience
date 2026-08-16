@@ -11,7 +11,11 @@ from pathlib import Path
 
 import yaml
 
-from .registry import compile_registry, merge_registry_snapshots
+from .registry import (
+    compile_central_registry,
+    compile_registry,
+    merge_registry_snapshots,
+)
 from .repository import GitScienceRepository, RepositoryError
 from .review import ReviewError, inspect_review, review_claim
 from .reviewers import ReviewerError
@@ -213,6 +217,14 @@ def _cmd_registry_merge(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_registry_build(args: argparse.Namespace) -> int:
+    snapshot = compile_central_registry(args.manifest)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n")
+    print(f"Built central registry: {args.output}")
+    return 0
+
+
 def _cmd_verify_inspect(args: argparse.Namespace) -> int:
     _print_yaml(inspect_claim(_repository(args), args.claim_id))
     return 0
@@ -344,7 +356,7 @@ def _cmd_audit(args: argparse.Namespace) -> int:
 
 
 def _cmd_status(args: argparse.Namespace) -> int:
-    print(_repository(args).git(["status", "--short"]))
+    print(_repository(args).git(["status", "--short", "--", "."]))
     return 0
 
 
@@ -356,7 +368,7 @@ def _cmd_diff(args: argparse.Namespace) -> int:
 def _cmd_log(args: argparse.Namespace) -> int:
     print(
         _repository(args).git(
-            ["log", "--oneline", "--decorate", "-n", str(args.max_count)]
+            ["log", "--oneline", "--decorate", "-n", str(args.max_count), "--", "."]
         )
     )
     return 0
@@ -364,8 +376,8 @@ def _cmd_log(args: argparse.Namespace) -> int:
 
 def _cmd_commit(args: argparse.Namespace) -> int:
     repo = _repository(args)
-    repo.git(["add", "-A"])
-    repo.git(["commit", "-m", args.message])
+    repo.git(["add", "-A", "--", "."])
+    repo.git(["commit", "--only", "-m", args.message, "--", "."])
     print(repo.git(["log", "-1", "--oneline"]))
     return 0
 
@@ -471,6 +483,12 @@ def build_parser() -> argparse.ArgumentParser:
     registry_merge.add_argument("inputs", nargs="+", type=Path)
     registry_merge.add_argument("--output", type=Path, required=True)
     registry_merge.set_defaults(handler=_cmd_registry_merge)
+    registry_build = registry_commands.add_parser(
+        "build", help="Build a central registry from a monorepo manifest."
+    )
+    registry_build.add_argument("--from", dest="manifest", type=Path, required=True)
+    registry_build.add_argument("--output", type=Path, required=True)
+    registry_build.set_defaults(handler=_cmd_registry_build)
 
     verify = commands.add_parser("verify", help="Inspect or run trusted verification.")
     verify_commands = verify.add_subparsers(dest="verify_command", required=True)

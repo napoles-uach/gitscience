@@ -1,0 +1,19 @@
+schema_version: gitscience-equation-v1
+id: EQ-QT-0004
+study: twisted-ribbon
+role: assumption
+latex: |
+  \mathcal S_{-\tau}=\Phi(\mathcal S_\tau),\qquad
+  \mathcal T\!\left(\Phi(\mathcal S)\right)=\mathcal T(\mathcal S)
+plain_language: |
+  The argument assumes a transformation relating opposite twists that leaves
+  total transmission unchanged. This physical covariance is not proved here.
+depends_on:
+  - EQ-QT-0002
+  - EQ-QT-0003
+claim_ids:
+  - GS-QT-0002
+correspondence:
+  - type: human_obligation
+    target: model-specific covariance derivation
+    status: open

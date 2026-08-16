@@ -1,0 +1,17 @@
+schema_version: gitscience-equation-v1
+id: EQ-QF-0005
+study: quantum-fmm
+role: derived_result
+latex: |
+  \|\Psi_R-\widetilde\Psi_R\|\le
+  \sum_{k=1}^{R}\left[\varepsilon_{g,k}+2\sqrt{p_k}\right]
+plain_language: |
+  The final error is conditionally bounded by good-subspace approximation
+  errors and overflow probabilities at every ideal intermediate state.
+depends_on:
+  - EQ-QF-0002
+  - EQ-QF-0003
+  - EQ-QF-0004
+claim_ids:
+  - GS-QF-0005
+correspondence: []

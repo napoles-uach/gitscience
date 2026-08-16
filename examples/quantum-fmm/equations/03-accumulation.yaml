@@ -1,0 +1,18 @@
+schema_version: gitscience-equation-v1
+id: EQ-QF-0003
+study: quantum-fmm
+role: derived_result
+latex: |
+  d_0=0,\quad d_{k+1}\le d_k+e_k
+  \quad\Longrightarrow\quad d_R\le\sum_{k=1}^{R}e_k
+plain_language: |
+  Local replacement bounds add across calls. Lean proves this induction from
+  supplied e_k values, without deriving those values physically.
+depends_on:
+  - EQ-QF-0002
+claim_ids:
+  - GS-QF-0003
+correspondence:
+  - type: lean
+    target: fmm_error_accumulation
+    status: proved

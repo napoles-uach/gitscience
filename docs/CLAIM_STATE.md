@@ -58,6 +58,10 @@ gitscience registry export --claim GS-QT-0005 --output registry.json
 
 Each study in that snapshot contains a complete `claim_index` plus coverage
 metadata indicating how many claims have full states in the exported subset.
+When declared by the study, the same entry also contains an ordered article and
+numbered equations. Their Git commit and SHA-256 metadata let a human or agent
+connect exposition, formal statements, executable checks, and open obligations
+without reconstructing the argument from isolated claim cards.
 
 ## Reading the dimensions
 

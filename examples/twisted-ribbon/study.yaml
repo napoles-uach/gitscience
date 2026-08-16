@@ -11,3 +11,5 @@ resolution_summary: |
   Lean establishes that the declared covariance implies even transmission,
   and Kwant corroborates even transmission at the reference point. The
   covariance itself and generality across energies and geometries remain open.
+article_source: article.yaml
+equation_sources: equations

@@ -64,3 +64,6 @@ scattering covariance remains an explicit assumption rather than being hidden
 inside the formal verdict.
 The exported registry discloses that the two full claim states are a curated
 subset of the five-node study graph.
+The study manifest also imports `article.yaml` and the numbered records in
+`equations/`. A registry export validates every equation and claim reference,
+then exposes the complete ordered argument to human and machine readers.

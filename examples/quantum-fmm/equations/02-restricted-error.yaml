@@ -1,0 +1,17 @@
+schema_version: gitscience-equation-v1
+id: EQ-QF-0002
+study: quantum-fmm
+role: assumption
+latex: |
+  \left\|(U_k-\widetilde U_k)\Pi_c\right\|\le\varepsilon_{g,k}
+plain_language: |
+  The approximate FMM call is assumed accurate on the capacity-limited
+  subspace. The present verifier does not derive this analytic bound.
+depends_on:
+  - EQ-QF-0001
+claim_ids:
+  - GS-QF-0002
+correspondence:
+  - type: human_obligation
+    target: restricted non-adaptive FMM error analysis
+    status: open

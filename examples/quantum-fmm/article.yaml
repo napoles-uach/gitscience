@@ -1,0 +1,71 @@
+schema_version: gitscience-article-v1
+study: quantum-fmm
+title: Occupancy obligations in a non-adaptive quantum FMM
+sections:
+  - id: capacity-model
+    title: Capacity-limited model
+    blocks:
+      - type: prose
+        text: |
+          A fixed-capacity implementation is meaningful only after specifying
+          the subspace on which no leaf box exceeds that capacity.
+      - type: equation
+        ref: EQ-QF-0001
+      - type: claim
+        ref: GS-QF-0001
+  - id: local-premise
+    title: Local approximation premise
+    blocks:
+      - type: prose
+        text: |
+          The analysis requires a bound for each approximate call on the good
+          subspace. This is retained as an assumption rather than silently
+          promoted to a verified theorem.
+      - type: equation
+        ref: EQ-QF-0002
+      - type: claim
+        ref: GS-QF-0002
+  - id: accumulated-error
+    title: From local to global error
+    blocks:
+      - type: prose
+        text: |
+          The hybrid argument adds declared local errors; this abstract
+          induction is the component checked by Lean.
+      - type: equation
+        ref: EQ-QF-0003
+      - type: claim
+        ref: GS-QF-0003
+      - type: prose
+        text: |
+          Occupancy overflow can be bounded through local factorial moments,
+          subject to the stated reduced-density normalization.
+      - type: equation
+        ref: EQ-QF-0004
+      - type: claim
+        ref: GS-QF-0004
+      - type: equation
+        ref: EQ-QF-0005
+      - type: claim
+        ref: GS-QF-0005
+  - id: finite-diagnostic
+    title: Finite occupancy diagnostic
+    blocks:
+      - type: prose
+        text: |
+          For independent uniform placement, the verifier compares internally
+          consistent box-scaling regimes against one declared tail budget.
+      - type: equation
+        ref: EQ-QF-0006
+      - type: claim
+        ref: GS-QF-0006
+      - type: claim
+        ref: GS-QF-0007
+      - type: prose
+        text: |
+          The calculation does not establish an asymptotic theorem, correlated
+          fermionic occupancy control, or stability throughout kinetic evolution.
+      - type: claim
+        ref: GS-QF-0008
+      - type: claim
+        ref: GS-QF-0009

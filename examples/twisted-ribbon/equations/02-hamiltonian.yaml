@@ -1,0 +1,21 @@
+schema_version: gitscience-equation-v1
+id: EQ-QT-0002
+study: twisted-ribbon
+role: definition
+latex: |
+  H(\tau)=\sum_i c_i^\dagger(4t+V)I_2c_i+
+  \sum_{\langle i,j\rangle}\left[
+  c_i^\dagger\left(-tI_2+i\lambda\boldsymbol\sigma\!\cdot\!
+  (\bar{\mathbf n}_{ij}\times\hat{\mathbf d}_{ij})\right)c_j+
+  \mathrm{h.c.}\right]
+plain_language: |
+  This is the effective spinful tight-binding Hamiltonian used by the Kwant
+  model. Twist enters through the local normals and embedded bond directions.
+depends_on:
+  - EQ-QT-0001
+claim_ids:
+  - GS-QT-0001
+correspondence:
+  - type: kwant
+    target: gitscience_kwant.twisted_nanoribbon:scattering_hopping
+    status: checked_by_source_mapping

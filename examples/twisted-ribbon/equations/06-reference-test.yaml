@@ -1,0 +1,19 @@
+schema_version: gitscience-equation-v1
+id: EQ-QT-0006
+study: twisted-ribbon
+role: numerical_result
+latex: |
+  \left|T(1,0.08)-T(1,-0.08)\right|<10^{-7},
+  \qquad W=8,\ L=24,\ t=1,\lambda=0.1,\ V=0
+plain_language: |
+  Kwant tests the equality at one explicit finite parameter point. Passing it
+  corroborates this instance and is not a proof over all energies or geometries.
+depends_on:
+  - EQ-QT-0002
+  - EQ-QT-0003
+claim_ids:
+  - GS-QT-0005
+correspondence:
+  - type: kwant
+    target: point_symmetry.transmission_even_in_tau
+    status: executable

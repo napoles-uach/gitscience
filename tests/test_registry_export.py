@@ -6,7 +6,11 @@ from pathlib import Path
 import pytest
 
 from gitscience.cli import main
-from gitscience.registry import compile_registry, merge_registry_snapshots
+from gitscience.registry import (
+    compile_central_registry,
+    compile_registry,
+    merge_registry_snapshots,
+)
 from gitscience.repository import GitScienceRepository, RepositoryError
 from gitscience.state import compile_claim_state, explain_claim_state
 
@@ -157,3 +161,127 @@ scope: general
 
     assert state["study"] is None
     assert all(value is None for value in state["narrative"].values())
+
+
+def test_registry_includes_ordered_article_and_equations(tmp_path):
+    source_root = tmp_path / "source"
+    equations = source_root / "equations"
+    equations.mkdir(parents=True)
+    _write(
+        equations / "01-hamiltonian.yaml",
+        """schema_version: gitscience-equation-v1
+id: EQ-QT-0001
+study: twisted-ribbon
+role: definition
+latex: H = H_0 + \\tau V
+plain_language: The twist perturbs the reference Hamiltonian.
+depends_on: []
+claim_ids: []
+""",
+    )
+    _write(
+        source_root / "article.yaml",
+        """schema_version: gitscience-article-v1
+study: twisted-ribbon
+title: A readable argument
+sections:
+  - id: model
+    title: Model
+    blocks:
+      - type: prose
+        text: Begin from the declared Hamiltonian.
+      - type: equation
+        ref: EQ-QT-0001
+""",
+    )
+    study_source = _write(
+        source_root / "study.yaml",
+        """name: Twisted ribbon transport
+research_question: Is transmission even under twist reversal?
+approach_summary: Separate assumptions, proof, and numerical evidence.
+resolution_summary: One finite instance is corroborated conditionally.
+article_source: article.yaml
+equation_sources: equations
+""",
+    )
+    repo = GitScienceRepository.init(tmp_path / "article-repo", "Article test")
+    repo.git(["config", "user.email", "science@example.test"])
+    repo.git(["config", "user.name", "Science Test"])
+    repo.create_topic("Quantum transport", "QT")
+    repo.create_model(
+        "ribbon-v1",
+        _write(tmp_path / "article-model.yaml", "name: Ribbon\nkind: tight_binding\n"),
+    )
+    repo.create_study("twisted-ribbon", study_source)
+    repo.create_claim(_claim(tmp_path, "Main result", "main_result"))
+    repo.git(["add", "-A"])
+    repo.git(["commit", "-m", "Record article"])
+
+    study = compile_registry(repo)["studies"][0]
+
+    assert study["article"]["sections"][0]["blocks"][1]["ref"] == "EQ-QT-0001"
+    assert study["article"]["source"]["state"] == "committed"
+    assert study["equations"][0]["latex"] == "H = H_0 + \\tau V"
+    assert study["equations"][0]["source"]["git_commit"]
+
+
+def test_central_registry_builds_multiple_studies_from_one_git_repo(tmp_path):
+    root = tmp_path / "registry"
+    root.mkdir()
+    GitScienceRepository._run_git_at(root, ["init"])
+    GitScienceRepository._run_git_at(root, ["config", "user.email", "science@example.test"])
+    GitScienceRepository._run_git_at(root, ["config", "user.name", "Science Test"])
+    for slug, topic in (("first", "AA"), ("second", "BB")):
+        repo = GitScienceRepository.init(root / "studies" / slug, slug.title())
+        repo.create_topic(slug.title(), topic)
+        repo.create_model(
+            f"{slug}-model",
+            _write(tmp_path / f"{slug}-model.yaml", f"name: {slug}\nkind: abstract\n"),
+        )
+        repo.create_study(
+            slug,
+            _write(
+                tmp_path / f"{slug}-study.yaml",
+                f"""name: {slug.title()}
+research_question: What does {slug} establish?
+approach_summary: Build a structured argument.
+resolution_summary: The scoped question remains proposed.
+""",
+            ),
+        )
+        repo.create_claim(
+            _write(
+                tmp_path / f"{slug}-claim.yaml",
+                f"""title: {slug.title()} result
+statement: A scoped statement.
+topic: {topic}
+model: {slug}-model
+study: {slug}
+role: main_result
+question: What is established?
+plain_language_conclusion: A result is proposed.
+scope_summary: This declared scope only.
+remaining_uncertainty: Verification remains open.
+scope: general
+""",
+            )
+        )
+    GitScienceRepository._run_git_at(root, ["add", "-A"])
+    GitScienceRepository._run_git_at(root, ["commit", "-m", "Record studies"])
+    manifest = _write(
+        root / "registry.yaml",
+        """schema_version: gitscience-registry-manifest-v1
+name: Shared registry
+public_url: https://example.test/science
+studies:
+  - path: studies/first
+  - path: studies/second
+""",
+    )
+
+    registry = compile_central_registry(manifest)
+
+    assert registry["registry"]["name"] == "Shared registry"
+    assert [study["id"] for study in registry["studies"]] == ["first", "second"]
+    assert len(registry["claims"]) == 2
+    assert all(source["git_commit"] for source in registry["sources"])

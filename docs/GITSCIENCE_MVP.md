@@ -18,6 +18,8 @@ entry-point group.
 8. An advisory reviewer cannot change derived status.
 9. Study narrative is versioned but cannot change derived status.
 10. A registry export must disclose partial claim coverage.
+11. Article and equation references must resolve inside the same study.
+12. A study inside a monorepo must not commit changes from sibling studies.
 
 The derived statuses are:
 
@@ -43,6 +45,8 @@ see [`SECURITY_MODEL.md`](SECURITY_MODEL.md) before automated ingestion.
 topics/QT.yaml
 models/helicoidal-ribbon-v1.yaml
 studies/twisted-ribbon.yaml
+articles/twisted-ribbon.yaml
+equations/twisted-ribbon/EQ-QT-0001.yaml
 claims/GS-QT-0001.yaml
 evidence/EV-000001.json
 artifacts/EV-000001.kwant.json
@@ -73,6 +77,7 @@ gitscience claim state CLAIM_ID [--json]
 gitscience claim explain CLAIM_ID
 gitscience registry export [--claim CLAIM_ID ...] [--output FILE]
 gitscience registry merge SNAPSHOT... --output FILE
+gitscience registry build --from REGISTRY.yaml --output FILE
 gitscience verify CLAIM_ID [CLAIM_ID ...]       # verify and commit evidence
 gitscience verify inspect CLAIM_ID
 gitscience verify run CLAIM_ID [CLAIM_ID ...]   # leave evidence uncommitted
@@ -138,10 +143,29 @@ The trusted `fmm_occupancy` plugin exposes one finite, schema-limited contract:
 
 See [`examples/quantum-fmm/README.md`](../examples/quantum-fmm/README.md).
 
+## Central registry layout
+
+One scientific registry can contain independent GitScience roots while sharing
+one Git history:
+
+```text
+registry.yaml
+studies/twisted-ribbon/.gitscience/config.json
+studies/twisted-ribbon/claims/...
+studies/quantum-fmm/.gitscience/config.json
+studies/quantum-fmm/claims/...
+generated/registry.json
+```
+
+GitScience discovers each root independently. The top-level `registry.yaml`
+selects complete claim states for publication, while each study entry still
+discloses its complete claim index. Normal branches and pull requests provide
+authorship, review, correction, and attribution across the shared registry.
+
 ## Deliberate MVP limits
 
-- No remote registry, search, fetch, or push abstraction; normal Git remotes can
-  be used manually.
+- No remote search, fetch, or push abstraction; normal Git remotes provide the
+  publication and review transport.
 - No cryptographic attestation beyond Git's existing commit-signing facilities.
 - Advisory LLM reviews exist, but no authenticated human-review workflow yet.
 - No generic code-execution verifier; each plugin must define a restricted

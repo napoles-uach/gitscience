@@ -14,7 +14,9 @@ provenance of an argument inspectable, reproducible, and correctable.
 - Conditional statuses and transitive `stale` propagation when a premise changes.
 - A deterministic canonical claim state for human and LLM interpretation.
 - Versioned study narratives and claim roles for standalone interpretation.
+- Ordered article sections and numbered equations linked to claims and verifiers.
 - Registry snapshots with explicit shown-versus-total coverage.
+- Central-registry builds for multiple studies sharing one Git history.
 - Optional advisory review through an external PhysicsIntern + LLM process.
 - Integrity auditing, adversarial tests, and explicit unsigned-evidence warnings.
 
@@ -122,6 +124,38 @@ gitscience -C /tmp/twisted-ribbon-science registry export \
 The resulting `gitscience-observatory-v1` document reports `shown`, `total`,
 and `is_complete` per study. A partial demo therefore cannot silently present
 itself as the complete argument graph.
+
+## One public scientific registry
+
+Multiple GitScience study roots can live under one ordinary Git repository.
+`gitscience init` detects the enclosing worktree, avoids nested `.git`
+directories, and scopes `status`, `log`, and `commit` to the selected study.
+This keeps claims, equations, evidence, reviews, and contribution history in
+one public repository without coupling that scientific content to the
+GitScience software source.
+
+A top-level manifest builds the single JSON consumed by an Observatory:
+
+```yaml
+schema_version: gitscience-registry-manifest-v1
+name: GitScience Registry
+public_url: https://github.com/OWNER/gitscience-registry
+studies:
+  - path: studies/twisted-ribbon
+    claims: [GS-QT-0003, GS-QT-0005]
+  - path: studies/quantum-fmm
+    claims: [GS-QF-0003, GS-QF-0007]
+```
+
+```bash
+gitscience registry build --from registry.yaml --output generated/registry.json
+```
+
+A study manifest may declare `article_source` and `equation_sources`. GitScience
+imports them into `articles/` and `equations/`, validates their references, and
+includes the ordered exposition and source revisions in the registry output.
+The Observatory is therefore a generated view, not a second editable copy of
+the science.
 
 The optional `review` command sends that canonical state to PhysicsIntern. It
 records an `RV-*` report and its provenance, but that report is explicitly

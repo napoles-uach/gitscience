@@ -1,0 +1,17 @@
+schema_version: gitscience-equation-v1
+id: EQ-QT-0001
+study: twisted-ribbon
+role: definition
+latex: |
+  \mathbf r(x,y;\tau)=
+  \bigl(x,y\cos(\tau x),y\sin(\tau x)\bigr)
+plain_language: |
+  The parameter tau twists each transverse section as the longitudinal
+  coordinate x increases; changing its sign reverses the handedness.
+depends_on: []
+claim_ids:
+  - GS-QT-0001
+correspondence:
+  - type: kwant
+    target: gitscience_kwant.twisted_nanoribbon:site_position
+    status: checked_by_source_mapping

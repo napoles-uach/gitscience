@@ -45,3 +45,7 @@ The successful numerical result remains `conditional_corroborated` because it
 depends on an explicit independent-occupancy assumption. The dynamic control of
 occupancy during kinetic steps and the generic spin-sector scope remain visible
 as unresolved claims.
+
+The study also contains an ordered `article.yaml` and numbered `equations/`.
+They connect the mathematical development to the exact claims, the Lean
+induction, the finite occupancy verifier, and the obligations that remain open.

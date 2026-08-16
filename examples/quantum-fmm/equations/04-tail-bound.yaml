@@ -1,0 +1,19 @@
+schema_version: gitscience-equation-v1
+id: EQ-QF-0004
+study: quantum-fmm
+role: derived_result
+latex: |
+  p_k\le\frac{1}{(c+1)!}\sum_b
+  \int_{b^{c+1}}\rho_{c+1}^{(k)}(r_1,\ldots,r_{c+1})
+  \,dr_1\cdots dr_{c+1}
+plain_language: |
+  A union bound relates overflow to local factorial moments, provided the
+  reduced density uses the stated normalization.
+depends_on:
+  - EQ-QF-0001
+claim_ids:
+  - GS-QF-0004
+correspondence:
+  - type: human_obligation
+    target: continuum reduced-density derivation
+    status: declared_not_formalized

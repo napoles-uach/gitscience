@@ -1,0 +1,69 @@
+schema_version: gitscience-article-v1
+study: twisted-ribbon
+title: Twist reversal and transmission in a helicoidal ribbon
+sections:
+  - id: physical-model
+    title: Physical model
+    blocks:
+      - type: prose
+        text: |
+          We represent the ribbon as a square lattice embedded in a helicoid.
+          The sign of tau distinguishes the two handednesses being compared.
+      - type: equation
+        ref: EQ-QT-0001
+      - type: prose
+        text: |
+          Electrons carry spin one-half. The effective nearest-neighbor model
+          includes a geometry-dependent Rashba term.
+      - type: equation
+        ref: EQ-QT-0002
+      - type: claim
+        ref: GS-QT-0001
+  - id: observable
+    title: Observable
+    blocks:
+      - type: prose
+        text: |
+          The question concerns total transmission rather than an individual
+          spin channel, so the observable sums over all propagating channels.
+      - type: equation
+        ref: EQ-QT-0003
+  - id: conditional-argument
+    title: Conditional symmetry argument
+    blocks:
+      - type: prose
+        text: |
+          A reversal symmetry is useful only after stating the transformation
+          and the quantity it preserves. In this study that physical step is an
+          explicit assumption.
+      - type: equation
+        ref: EQ-QT-0004
+      - type: claim
+        ref: GS-QT-0002
+      - type: prose
+        text: |
+          From that premise, the desired evenness is a short abstract
+          implication. This is the part represented and checked in Lean.
+      - type: equation
+        ref: EQ-QT-0005
+      - type: claim
+        ref: GS-QT-0003
+      - type: claim
+        ref: GS-QT-0004
+  - id: numerical-instance
+    title: Numerical instance
+    blocks:
+      - type: prose
+        text: |
+          The computational check evaluates opposite twists independently at
+          one declared point and audits Hermiticity, unitarity, lead modes, and
+          spin decomposition before comparing transmission.
+      - type: equation
+        ref: EQ-QT-0006
+      - type: claim
+        ref: GS-QT-0005
+      - type: prose
+        text: |
+          Thus the current result is conditional at the model level and
+          corroborated at one finite point. A general physical covariance proof
+          and broader parameter study remain open obligations.

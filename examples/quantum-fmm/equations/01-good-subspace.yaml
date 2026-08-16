@@ -1,0 +1,14 @@
+schema_version: gitscience-equation-v1
+id: EQ-QF-0001
+study: quantum-fmm
+role: definition
+latex: |
+  \Pi_c=\prod_{b=1}^{B}\mathbf 1[N_b\le c],\qquad
+  p_k=\langle\Psi_{k-1}|(I-\Pi_c)|\Psi_{k-1}\rangle
+plain_language: |
+  Pi_c selects configurations with at most c particles in every leaf box;
+  p_k measures overflow immediately before call k.
+depends_on: []
+claim_ids:
+  - GS-QF-0001
+correspondence: []

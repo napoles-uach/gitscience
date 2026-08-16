@@ -136,6 +136,27 @@ def test_repository_creates_topic_model_and_claim(tmp_path):
     assert (repo.root / ".git").is_dir()
 
 
+def test_repository_can_share_parent_git_without_committing_siblings(tmp_path):
+    root = tmp_path / "registry"
+    root.mkdir()
+    GitScienceRepository._run_git_at(root, ["init"])
+    GitScienceRepository._run_git_at(root, ["config", "user.email", "science@example.test"])
+    GitScienceRepository._run_git_at(root, ["config", "user.name", "Science Test"])
+    sibling = root / "unrelated.txt"
+    sibling.write_text("leave me uncommitted\n")
+
+    repo = GitScienceRepository.init(root / "studies" / "ribbon", "Ribbon")
+    repo.create_topic("Quantum transport", "QT")
+
+    assert not (repo.root / ".git").exists()
+    assert repo.git_root == root
+    assert main(["-C", str(repo.root), "commit", "-m", "Initialize ribbon"]) == 0
+    assert repo.committed_revision(repo.root / "topics" / "QT.yaml")
+    sibling_status = repo.git(["status", "--short", "--", str(sibling)])
+    assert sibling_status.startswith("?? ")
+    assert sibling_status.endswith("unrelated.txt")
+
+
 def test_kwant_verifier_is_discovered_as_a_plugin():
     verifier = get_verifier("kwant_transport")
 

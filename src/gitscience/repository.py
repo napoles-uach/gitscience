@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -92,6 +93,8 @@ class GitScienceRepository:
             "topics",
             "models",
             "studies",
+            "articles",
+            "equations",
             "claims",
             "evidence",
             "artifacts",
@@ -113,7 +116,7 @@ class GitScienceRepository:
         (metadata_dir / "config.json").write_text(
             json.dumps(config, indent=2, sort_keys=True) + "\n"
         )
-        if not (root / ".git").exists():
+        if not cls._git_worktree_root(root):
             cls._run_git_at(root, ["init"])
         return cls(root)
 
@@ -141,6 +144,34 @@ class GitScienceRepository:
 
     def git(self, args: list[str]) -> str:
         return self._run_git_at(self.root, args).stdout.rstrip()
+
+    @staticmethod
+    def _git_worktree_root(path: Path) -> Path | None:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            return None
+        return Path(result.stdout.strip()).resolve()
+
+    @property
+    def git_root(self) -> Path:
+        root = self._git_worktree_root(self.root)
+        if root is None:
+            raise RepositoryError(f"Not inside a Git worktree: {self.root}")
+        return root
+
+    def git_path(self, path: Path) -> str:
+        """Return a path relative to the enclosing Git worktree."""
+        resolved = path.resolve()
+        try:
+            return resolved.relative_to(self.git_root).as_posix()
+        except ValueError as exc:
+            raise RepositoryError(f"Path is outside the Git worktree: {path}") from exc
 
     def git_config(self, key: str) -> str | None:
         result = subprocess.run(
@@ -217,11 +248,53 @@ class GitScienceRepository:
             raise RepositoryError(f"Study is missing fields: {', '.join(missing)}")
         for field in STUDY_REQUIRED_FIELDS:
             self._validate_non_empty_text(study[field], f"study.{field}")
+        article_source = study.pop("article_source", None)
+        equation_sources = study.pop("equation_sources", None)
+        if article_source is not None:
+            article_path = self._resolve_study_source(source, article_source, "article")
+            target = self.root / "articles" / f"{study_id}.yaml"
+            shutil.copyfile(article_path, target)
+            study["article_path"] = target.relative_to(self.root).as_posix()
+        if equation_sources is not None:
+            equation_directory = self._resolve_study_source(
+                source, equation_sources, "equation directory", require_directory=True
+            )
+            targets = self.root / "equations" / study_id
+            targets.mkdir(parents=True, exist_ok=True)
+            equation_files = sorted(equation_directory.glob("*.yaml"))
+            if not equation_files:
+                raise RepositoryError(
+                    f"Equation directory contains no YAML files: {equation_directory}"
+                )
+            for equation_path in equation_files:
+                shutil.copyfile(equation_path, targets / equation_path.name)
+            study["equation_directory"] = targets.relative_to(self.root).as_posix()
         study["schema_version"] = "gitscience-study-v1"
         study["id"] = study_id
         study.setdefault("created_at", _now())
         self.write_yaml(path, study)
         return study
+
+    @staticmethod
+    def _resolve_study_source(
+        study_source: Path,
+        value: Any,
+        label: str,
+        *,
+        require_directory: bool = False,
+    ) -> Path:
+        if not isinstance(value, str) or not value.strip():
+            raise RepositoryError(f"{label} source must be a relative path")
+        candidate = Path(value)
+        source_root = study_source.resolve().parent
+        resolved = (source_root / candidate).resolve()
+        if candidate.is_absolute() or not resolved.is_relative_to(source_root):
+            raise RepositoryError(f"{label} source escapes the study source directory")
+        valid = resolved.is_dir() if require_directory else resolved.is_file()
+        if not valid:
+            expected = "directory" if require_directory else "file"
+            raise RepositoryError(f"{label} source is not a {expected}: {resolved}")
+        return resolved
 
     def create_claim(self, source: Path) -> dict[str, Any]:
         claim = self.load_yaml(source)
@@ -756,9 +829,9 @@ class GitScienceRepository:
         if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40,64}", commit):
             errors.append(f"{kind} git_commit is invalid")
             return
-        relative = path.relative_to(self.root).as_posix()
+        git_relative = self.git_path(path)
         result = subprocess.run(
-            ["git", "show", f"{commit}:{relative}"],
+            ["git", "show", f"{commit}:{git_relative}"],
             cwd=self.root,
             capture_output=True,
             check=False,

@@ -1,0 +1,18 @@
+schema_version: gitscience-equation-v1
+id: EQ-QT-0003
+study: twisted-ribbon
+role: definition
+latex: |
+  T(E,\tau)=\operatorname{Tr}\!\left[
+  t^\dagger(E,\tau)t(E,\tau)\right]
+plain_language: |
+  Total two-terminal transmission is the trace over all propagating spin and
+  orbital channels of the transmission block of the scattering matrix.
+depends_on:
+  - EQ-QT-0002
+claim_ids:
+  - GS-QT-0001
+correspondence:
+  - type: kwant
+    target: kwant.smatrix.transmission
+    status: executed

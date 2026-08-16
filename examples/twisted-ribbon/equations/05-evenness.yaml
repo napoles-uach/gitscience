@@ -1,0 +1,20 @@
+schema_version: gitscience-equation-v1
+id: EQ-QT-0005
+study: twisted-ribbon
+role: derived_result
+latex: |
+  \left[\mathcal S_{-\tau}=\Phi(\mathcal S_\tau)\ \land\
+  \mathcal T\circ\Phi=\mathcal T\right]
+  \Longrightarrow T(E,-\tau)=T(E,\tau)
+plain_language: |
+  Given the covariance premise, even transmission follows. Lean checks this
+  implication, but does not establish the premise for the physical ribbon.
+depends_on:
+  - EQ-QT-0004
+claim_ids:
+  - GS-QT-0003
+  - GS-QT-0004
+correspondence:
+  - type: lean
+    target: twist_transport_symmetry
+    status: proved

@@ -11,3 +11,5 @@ resolution_summary: |
   consistent finite occupancy regimes meet the selected tail budget. This does
   not establish the local analytic bound, dynamic occupancy control, or a
   general fermionic occupancy theorem.
+article_source: article.yaml
+equation_sources: equations
