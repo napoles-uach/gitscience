@@ -4,10 +4,11 @@ study: twisted-ribbon
 role: definition
 latex: |
   \begin{aligned}
-  h_{ij}(\tau)&=-tI_2+i\lambda\boldsymbol\sigma\!\cdot\!
+  h_{ij}(\tau)&=-tI_2+h^{\mathrm{SO}}_{ij}(\tau),\\
+  h^{\mathrm{SO}}_{ij}(\tau)&=i\lambda\boldsymbol\sigma\!\cdot\!
   (\bar{\mathbf n}_{ij}\times\hat{\mathbf d}_{ij}),\\
-  H(\tau)&=\sum_i c_i^\dagger(4t+V)I_2c_i
-  +\sum_{\langle i,j\rangle}
+  H_0&=\sum_i c_i^\dagger(4t+V)I_2c_i,\\
+  H(\tau)&=H_0+\sum_{\langle i,j\rangle}
   \left[c_i^\dagger h_{ij}(\tau)c_j+\mathrm{h.c.}\right].
   \end{aligned}
 plain_language: |

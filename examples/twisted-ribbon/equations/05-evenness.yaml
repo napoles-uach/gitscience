@@ -3,9 +3,11 @@ id: EQ-QT-0005
 study: twisted-ribbon
 role: derived_result
 latex: |
-  \left[\mathcal S_{-\tau}=\Phi(\mathcal S_\tau)\ \land\
-  \mathcal T\circ\Phi=\mathcal T\right]
-  \Longrightarrow T(E,-\tau)=T(E,\tau)
+  \begin{gathered}
+  \mathcal S_{-\tau}=\Phi(\mathcal S_\tau),\qquad
+  \mathcal T\circ\Phi=\mathcal T,\\
+  \Longrightarrow\quad T(E,-\tau)=T(E,\tau).
+  \end{gathered}
 plain_language: |
   Given the covariance premise, even transmission follows. Lean checks this
   implication, but does not establish the premise for the physical ribbon.
