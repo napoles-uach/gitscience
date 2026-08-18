@@ -119,6 +119,8 @@ def test_state_exposes_conditional_support_and_scope(tmp_path, monkeypatch):
         "dependencies": "conditional",
         "provenance": "unauthenticated",
         "review": "unreviewed",
+        "formalization": "not_requested",
+        "scientific_grounding": "unassessed",
         "revision": "committed",
     }
     assert state["dependency_closure"]["nodes"][0]["id"] == assumption_id

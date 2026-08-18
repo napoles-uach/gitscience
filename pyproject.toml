@@ -35,6 +35,9 @@ lean_formal = "gitscience_lean.plugin:plugin"
 [project.entry-points."gitscience.reviewers"]
 physics_intern = "gitscience_physics_intern.plugin:plugin"
 
+[project.entry-points."gitscience.formalizers"]
+physics_intern = "gitscience_physics_intern.formalizer:plugin"
+
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"

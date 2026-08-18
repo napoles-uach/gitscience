@@ -12,10 +12,46 @@ PROOFS = {
     "fmm_error_accumulation": {
         "file": "fmm_error_accumulation.lean",
         "assertions": {"local_error_bounds_accumulate"},
+        "title": "Local error bounds accumulate",
+        "summary": (
+            "An abstract induction showing that declared local error bounds "
+            "accumulate under the supplied ordered addition law."
+        ),
+        "theorem_name": "local_error_bounds_accumulate",
+        "formal_statement": {
+            "language": "lean4",
+            "theorem_name": "local_error_bounds_accumulate",
+            "declaration": """theorem local_error_bounds_accumulate
+    {Error : Type}
+    (budget : ErrorBudget Error)
+    (cumulative stepError : Nat -> Error)
+    (initial : budget.le (cumulative 0) budget.zero)
+    (step : forall n,
+      budget.le (cumulative (n + 1))
+        (budget.add (cumulative n) (stepError n))) :
+    forall steps,
+      budget.le (cumulative steps) (accumulatedError budget stepError steps)""",
+        },
     },
     "twist_transport_symmetry": {
         "file": "twist_transport_symmetry.lean",
         "assertions": {"transport_symmetry_implies_even_transmission"},
+        "title": "Scattering covariance implies even transmission",
+        "summary": (
+            "An abstract implication from scattering covariance and transmission "
+            "invariance to equality under twist reversal."
+        ),
+        "theorem_name": "transport_symmetry_implies_even_transmission",
+        "formal_statement": {
+            "language": "lean4",
+            "theorem_name": "transport_symmetry_implies_even_transmission",
+            "declaration": """theorem transport_symmetry_implies_even_transmission
+    {Twist Scattering Value : Type}
+    (system : TransportSymmetry Twist Scattering Value)
+    (tau : Twist) :
+    system.transmission (system.scattering (system.reverse tau)) =
+      system.transmission (system.scattering tau)""",
+        },
     },
 }
 
@@ -104,6 +140,24 @@ class LeanFormalVerifier:
     def source_paths(self) -> list[Path]:
         package = Path(__file__).parent
         return sorted((*package.glob("*.py"), *(package / "proofs").glob("*.lean")))
+
+    def formalization_catalog(self) -> list[dict[str, Any]]:
+        """Describe trusted proof contracts an agent may request."""
+        return [
+            {
+                "title": definition["title"],
+                "summary": definition["summary"],
+                "theorem_name": definition["theorem_name"],
+                "formal_statement": definition["formal_statement"],
+                "verification": {
+                    "verifier": self.name,
+                    "experiment": self.default_experiment,
+                    "request": {"proof": proof_name},
+                    "assertions": sorted(definition["assertions"]),
+                },
+            }
+            for proof_name, definition in sorted(PROOFS.items())
+        ]
 
 
 plugin = LeanFormalVerifier()

@@ -77,6 +77,13 @@ class GitScienceRepository:
 
     def __init__(self, root: Path):
         self.root = root.resolve()
+        self._formalization_reference_cache: dict[
+            tuple[str, str], dict[str, Any]
+        ] = {}
+        self._cached_head: str | None = None
+        self._evidence_audit_cache: dict[
+            Path, tuple[tuple[Any, ...], dict[str, Any]]
+        ] = {}
         self.metadata_dir = self.root / ".gitscience"
         self.config_path = self.metadata_dir / "config.json"
         if not self.config_path.exists():
@@ -100,6 +107,7 @@ class GitScienceRepository:
             "artifacts",
             "reviews",
             "review-artifacts",
+            "formalizations",
         ):
             target = root / directory
             target.mkdir(exist_ok=True)
@@ -112,6 +120,7 @@ class GitScienceRepository:
             "next_claim": 1,
             "next_evidence": 1,
             "next_review": 1,
+            "next_formalization": 1,
         }
         (metadata_dir / "config.json").write_text(
             json.dumps(config, indent=2, sort_keys=True) + "\n"
@@ -143,7 +152,63 @@ class GitScienceRepository:
         return result
 
     def git(self, args: list[str]) -> str:
-        return self._run_git_at(self.root, args).stdout.rstrip()
+        output = self._run_git_at(self.root, args).stdout.rstrip()
+        if args and args[0] in {
+            "commit",
+            "checkout",
+            "switch",
+            "reset",
+            "merge",
+            "rebase",
+            "pull",
+        }:
+            self._cached_head = None
+            self._evidence_audit_cache.clear()
+            self._formalization_reference_cache.clear()
+        return output
+
+    def _head_revision(self) -> str:
+        if self._cached_head is None:
+            self._cached_head = self._run_git_at(
+                self.root, ["rev-parse", "HEAD"]
+            ).stdout.strip()
+        return self._cached_head
+
+    def _record_path_signature(self, value: Any) -> tuple[str, int, int] | None:
+        if not isinstance(value, str):
+            return None
+        candidate = Path(value)
+        resolved = (self.root / candidate).resolve()
+        if candidate.is_absolute() or not resolved.is_relative_to(self.root):
+            return None
+        try:
+            stat = resolved.stat()
+        except OSError:
+            return (value, -1, -1)
+        return (value, stat.st_mtime_ns, stat.st_size)
+
+    def _evidence_cache_key(
+        self, path: Path, record: dict[str, Any]
+    ) -> tuple[Any, ...]:
+        dependencies = record.get("dependencies", [])
+        if not isinstance(dependencies, list):
+            dependencies = []
+        references = [
+            record.get("claim", {}),
+            record.get("model", {}),
+            record.get("artifact", {}),
+            record.get("formalization", {}),
+            *dependencies,
+        ]
+        signatures = [
+            self._record_path_signature(path.relative_to(self.root).as_posix())
+        ]
+        signatures.extend(
+            self._record_path_signature(reference.get("path"))
+            for reference in references
+            if isinstance(reference, dict)
+        )
+        return (self._head_revision(), *signatures)
 
     @staticmethod
     def _git_worktree_root(path: Path) -> Path | None:
@@ -537,6 +602,10 @@ class GitScienceRepository:
         identifier = _validate_identifier(review_id, "review ID")
         return self.root / "reviews" / f"{identifier}.json"
 
+    def formalization_path(self, formalization_id: str) -> Path:
+        identifier = _validate_identifier(formalization_id, "formalization ID")
+        return self.root / "formalizations" / f"{identifier}.yaml"
+
     def load_claim(self, claim_id: str) -> dict[str, Any]:
         path = self.claim_path(claim_id)
         if not path.exists():
@@ -555,6 +624,12 @@ class GitScienceRepository:
             raise RepositoryError(f"Unknown study: {study_id}")
         return self.load_yaml(path)
 
+    def load_formalization(self, formalization_id: str) -> dict[str, Any]:
+        path = self.formalization_path(formalization_id)
+        if not path.exists():
+            raise RepositoryError(f"Unknown formalization: {formalization_id}")
+        return self.load_yaml(path)
+
     def next_evidence_id(self) -> str:
         config = self._load_config()
         evidence_id = f"EV-{config['next_evidence']:06d}"
@@ -569,6 +644,14 @@ class GitScienceRepository:
         config["next_review"] = next_review + 1
         self._save_config(config)
         return review_id
+
+    def next_formalization_id(self) -> str:
+        config = self._load_config()
+        next_formalization = config.get("next_formalization", 1)
+        formalization_id = f"FM-{next_formalization:06d}"
+        config["next_formalization"] = next_formalization + 1
+        self._save_config(config)
+        return formalization_id
 
     def evidence_for_claim(self, claim_id: str) -> list[dict[str, Any]]:
         records = []
@@ -626,6 +709,11 @@ class GitScienceRepository:
                 "record": {},
             }
 
+        cache_key = self._evidence_cache_key(path, record)
+        cached = self._evidence_audit_cache.get(path.resolve())
+        if cached is not None and cached[0] == cache_key:
+            return cached[1]
+
         required = {
             "schema_version",
             "id",
@@ -656,6 +744,7 @@ class GitScienceRepository:
         artifact = record.get("artifact")
         environment = record.get("environment")
         dependencies = record.get("dependencies", [])
+        formalization = record.get("formalization")
         if not isinstance(claim, dict):
             errors.append("claim reference must be an object")
             claim = {}
@@ -676,11 +765,18 @@ class GitScienceRepository:
         ):
             errors.append("dependencies must be a list of references")
             dependencies = []
+        if formalization is not None and not isinstance(formalization, dict):
+            errors.append("formalization reference must be an object")
+            formalization = None
 
         self._audit_record_reference("claim", claim, errors, warnings)
         self._audit_record_reference("model", model, errors, warnings)
         for dependency in dependencies:
             self._audit_record_reference("claim", dependency, errors, warnings)
+        if formalization is not None:
+            self._audit_record_reference(
+                "formalization", formalization, errors, warnings
+            )
 
         artifact_path = self._safe_record_path(
             artifact.get("path"), "artifacts", errors
@@ -748,6 +844,53 @@ class GitScienceRepository:
             try:
                 current_claim = self.load_claim(claim_id)
                 current_verification = current_claim.get("verification", {})
+                if formalization is not None:
+                    formalization_record = self._formalization_at_reference(
+                        formalization, errors
+                    )
+                    if formalization_record:
+                        current_verification = (
+                            formalization_record.get("verification") or {}
+                        )
+                        approval = formalization_record.get("semantic_approval", {})
+                        statement = formalization_record.get("formal_statement", {})
+                        if (
+                            formalization_record.get("status") != "human_approved"
+                            or approval.get("status") != "accepted"
+                            or approval.get("formal_statement_sha256")
+                            != statement.get("sha256")
+                        ):
+                            errors.append(
+                                "formalization was not human-approved at its recorded revision"
+                            )
+                        if formalization_record.get("claim", {}).get("id") != claim_id:
+                            errors.append("formalization targets another claim")
+                        if formalization_record.get("claim", {}).get(
+                            "sha256"
+                        ) != claim.get("sha256"):
+                            errors.append(
+                                "formalization targets another claim revision"
+                            )
+                        if formalization.get("semantic_approval") != "accepted":
+                            errors.append(
+                                "evidence does not record accepted semantic approval"
+                            )
+                        recorded_grounding = formalization.get(
+                            "scientific_grounding"
+                        )
+                        actual_grounding = formalization_record.get(
+                            "scientific_grounding", {}
+                        ).get("status")
+                        if recorded_grounding != actual_grounding:
+                            errors.append(
+                                "formalization grounding status disagrees with its record"
+                            )
+                        if formalization.get("formal_statement_sha256") != statement.get(
+                            "sha256"
+                        ):
+                            errors.append(
+                                "formal statement digest disagrees with its record"
+                            )
                 current_verifier = current_verification.get(
                     "verifier", current_verification.get("backend")
                 )
@@ -781,7 +924,7 @@ class GitScienceRepository:
             except RepositoryError as exc:
                 errors.append(str(exc))
 
-        return {
+        report = {
             "path": path.relative_to(self.root).as_posix(),
             "id": record.get("id", path.stem),
             "valid": not errors,
@@ -790,6 +933,75 @@ class GitScienceRepository:
             "warnings": warnings,
             "record": record,
         }
+        self._evidence_audit_cache[path.resolve()] = (cache_key, report)
+        return report
+
+    def _formalization_at_reference(
+        self, reference: dict[str, Any], errors: list[str]
+    ) -> dict[str, Any] | None:
+        path_value = reference.get("path")
+        commit = reference.get("git_commit")
+        if not isinstance(path_value, str) or not isinstance(commit, str):
+            return None
+        cache_key = (commit, path_value)
+        cached = self._formalization_reference_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        candidate = Path(path_value)
+        expected_root = (self.root / "formalizations").resolve()
+        path = (self.root / candidate).resolve()
+        if candidate.is_absolute() or not path.is_relative_to(expected_root):
+            return None
+        git_relative = self.git_path(path)
+        result = subprocess.run(
+            ["git", "show", f"{commit}:{git_relative}"],
+            cwd=self.root,
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            return None
+        try:
+            loaded = yaml.safe_load(result.stdout)
+        except yaml.YAMLError as exc:
+            errors.append(f"formalization is invalid YAML: {exc}")
+            return None
+        if not isinstance(loaded, dict):
+            errors.append("formalization root must be an object")
+            return None
+        self._formalization_reference_cache[cache_key] = loaded
+        return loaded
+
+    def evidence_targets_current_formalization(
+        self, record: dict[str, Any]
+    ) -> bool:
+        """Return whether formal evidence targets the current approved mapping."""
+        reference = record.get("formalization")
+        if reference is None:
+            return True
+        if not isinstance(reference, dict):
+            return False
+        path_value = reference.get("path")
+        if not isinstance(path_value, str):
+            return False
+        candidate = Path(path_value)
+        path = (self.root / candidate).resolve()
+        expected_root = (self.root / "formalizations").resolve()
+        if candidate.is_absolute() or not path.is_relative_to(expected_root):
+            return False
+        if not path.is_file() or reference.get("sha256") != self.sha256(path):
+            return False
+        try:
+            formalization = self.load_yaml(path)
+        except RepositoryError:
+            return False
+        approval = formalization.get("semantic_approval", {})
+        statement = formalization.get("formal_statement", {})
+        return (
+            formalization.get("status") == "human_approved"
+            and approval.get("status") == "accepted"
+            and approval.get("formal_statement_sha256") == statement.get("sha256")
+        )
 
     def audit_all_evidence(self, claim_id: str | None = None) -> list[dict[str, Any]]:
         reports = []
@@ -909,6 +1121,7 @@ class GitScienceRepository:
             record
             for record in self.evidence_for_claim(claim_id)
             if record.get("claim", {}).get("sha256") == current_digest
+            and self.evidence_targets_current_formalization(record)
         ]
         classifications = {record.get("classification") for record in records}
         if "contradictory" in classifications:
@@ -933,6 +1146,13 @@ class GitScienceRepository:
                 base_status = f"conditional_{base_status}"
             if base_status == "proposed":
                 base_status = "conditional"
+        if base_status == "proven" and any(
+            record.get("formalization", {}).get("scientific_grounding")
+            in {"unlinked", "partial"}
+            for record in records
+            if isinstance(record.get("formalization"), dict)
+        ):
+            base_status = "conditional_proven"
         status_cache[claim_id] = base_status
         return base_status
 

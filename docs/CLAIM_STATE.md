@@ -22,11 +22,13 @@ distinctions explicit:
 - the versioned study narrative and claim role, when declared;
 - the transitive dependency closure and locked assumptions;
 - the derived status and separate logical, computational, dependency,
-  provenance, review, and revision dimensions;
+  provenance, review, formalization, scientific-grounding, and revision dimensions;
 - only integrity-valid evidence for the current claim hash;
 - assertion outcomes normalized as `satisfied`, `failed`, or `indeterminate`;
 - committed advisory reviews that target the current claim hash and retain a
   matching artifact digest;
+- committed formalization requests, their human semantic approval, locked Lean
+  statement, unformalized content, and scientific-grounding status;
 - conditions, limitations, and open obligations;
 - the research question, plain-language conclusion, scope summary, and
   remaining uncertainty;
@@ -70,7 +72,10 @@ checks. `computational` reports finite verifier results without promoting them
 to general proof. `dependencies` exposes unresolved assumptions, stale
 premises, and missing revision locks. `provenance` reports whether selected
 evidence and reviews are authenticated. `review` only reports the presence of
-advisory opinions. `revision` warns when the claim or model has local changes.
+advisory opinions. `formalization` distinguishes no request, a draft, and a
+human-approved semantic mapping. `scientific_grounding` reports whether the
+approved theorem is unlinked, partially linked, or established for the declared
+model. `revision` warns when the claim or model has local changes.
 
 The top-level `status.derived` remains the repository's concise state label.
 For example, `conditional_corroborated` means that current computational
@@ -86,3 +91,8 @@ advisory `RV-*` record. GitScience ignores that verdict when deriving claim
 status. If no current integrity-valid evidence exists, a reviewer verdict of
 `VERIFIED` or `REFUTED` is locally replaced with `INCONCLUSIVE` and the original
 reported verdict remains in the review artifact for audit.
+
+An LLM may propose a formalization, but that proposal cannot run Lean or affect
+status until a human approves its semantics. Lean then checks the locked theorem;
+it cannot promote scientific grounding automatically. See
+[`FORMALIZATION_WORKFLOW.md`](FORMALIZATION_WORKFLOW.md).

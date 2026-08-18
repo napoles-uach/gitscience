@@ -18,6 +18,8 @@ provenance of an argument inspectable, reproducible, and correctable.
 - Registry snapshots with explicit shown-versus-total coverage.
 - Central-registry builds for multiple studies sharing one Git history.
 - Optional advisory review through an external PhysicsIntern + LLM process.
+- LLM-proposed formal obligations with human semantic approval before Lean runs.
+- Separate formalization, logical-proof, and scientific-grounding dimensions.
 - Integrity auditing, adversarial tests, and explicit unsigned-evidence warnings.
 
 The reference cases study coherent transport in a helicoidal ribbon and
@@ -165,6 +167,24 @@ to `INCONCLUSIVE` if the reviewer attempts `VERIFIED` or `REFUTED` in that
 state. PhysicsIntern must be installed in the active Python environment and its
 provider API key must already be exported.
 
+PhysicsIntern can also propose a formal obligation without receiving authority to
+approve or verify it:
+
+```bash
+gitscience formal request GS-QT-0003 \
+  --with physics_intern --model YOUR_PHYSICS_INTERN_MODEL
+gitscience commit -m "Propose formal transport obligation"
+gitscience formal approve FM-000001
+gitscience commit -m "Approve formal transport semantics"
+gitscience formal verify FM-000001
+```
+
+The proposal records the Lean statement, semantic mapping, assumptions,
+unformalized scientific content, and grounding status. Human approval locks the
+statement by digest. The MVP executes only exact statement-contract pairs bundled
+with trusted verifier plugins; it never runs arbitrary Lean source emitted by an LLM. See the
+[LLM-assisted formalization workflow](docs/FORMALIZATION_WORKFLOW.md).
+
 ## Formal argument graph
 
 Claims can be typed as definitions, assumptions, lemmas, propositions,
@@ -217,5 +237,7 @@ LLM comparison remain explicitly pending.
   from the implemented Hamiltonian.
 - Correspondence between LaTeX, Lean, and Kwant is recorded but not formally
   verified.
+- Agent-generated Lean source is not executed; new proof contracts require trusted
+  adapter review before they become runnable.
 - PhysicsIntern reviews are advisory and cannot change claim status.
 - This is research software, not a production scientific registry.

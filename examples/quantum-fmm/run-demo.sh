@@ -40,7 +40,12 @@ for source in "$SCRIPT_DIR"/formal-graph/*.yaml; do
   index=$((index + 1))
 done
 
-gitscience -C "$TARGET" verify GS-QF-0003
+gitscience -C "$TARGET" formal create GS-QF-0003 \
+  --from "$SCRIPT_DIR/formalization-error-accumulation.yaml"
+gitscience -C "$TARGET" commit -m "Propose formal accumulation obligation"
+gitscience -C "$TARGET" formal approve FM-000001
+gitscience -C "$TARGET" commit -m "Approve formal accumulation semantics"
+gitscience -C "$TARGET" formal verify FM-000001 --commit-evidence
 gitscience -C "$TARGET" verify GS-QF-0007
 gitscience -C "$TARGET" claim graph
 gitscience -C "$TARGET" claim obligations

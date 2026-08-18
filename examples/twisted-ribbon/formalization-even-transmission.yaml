@@ -1,0 +1,42 @@
+summary: >-
+  Formalize the deductive bridge from scattering covariance and transmission
+  invariance to even total transmission under twist reversal.
+formal_statement:
+  language: lean4
+  theorem_name: transport_symmetry_implies_even_transmission
+  declaration: |-
+    theorem transport_symmetry_implies_even_transmission
+        {Twist Scattering Value : Type}
+        (system : TransportSymmetry Twist Scattering Value)
+        (tau : Twist) :
+        system.transmission (system.scattering (system.reverse tau)) =
+          system.transmission (system.scattering tau)
+semantic_mapping:
+  - source: "S_{-tau} = Phi(S_tau)"
+    target: system.scattering_covariant
+    status: exact
+  - source: "T(Phi(S)) = T(S)"
+    target: system.transmission_invariant
+    status: exact
+  - source: "T(E,-tau) = T(E,tau)"
+    target: transport_symmetry_implies_even_transmission
+    status: partial
+assumptions:
+  - Scattering is covariant under the declared twist-reversal map.
+  - Total transmission is invariant under the scattering transformation.
+unformalized:
+  - The Kwant Hamiltonian and leads satisfy the abstract covariance premise.
+  - The abstract transmission functional equals the implemented numerical observable.
+  - The finite tight-binding model represents a physical twisted ribbon.
+scientific_grounding:
+  status: partial
+  rationale: >-
+    Lean checks the abstract implication, but the model-specific Hamiltonian,
+    leads, and observable have not been formally connected to its premises.
+verification:
+  verifier: lean_formal
+  experiment: trusted_proof
+  request:
+    proof: twist_transport_symmetry
+  assertions:
+    - transport_symmetry_implies_even_transmission

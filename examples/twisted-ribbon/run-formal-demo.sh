@@ -36,7 +36,12 @@ for source in "$SCRIPT_DIR"/formal-graph/*.yaml; do
   index=$((index + 1))
 done
 
-gitscience -C "$TARGET" verify GS-QT-0003
+gitscience -C "$TARGET" formal create GS-QT-0003 \
+  --from "$SCRIPT_DIR/formalization-even-transmission.yaml"
+gitscience -C "$TARGET" commit -m "Propose formal transport obligation"
+gitscience -C "$TARGET" formal approve FM-000001
+gitscience -C "$TARGET" commit -m "Approve formal transport semantics"
+gitscience -C "$TARGET" formal verify FM-000001 --commit-evidence
 gitscience -C "$TARGET" verify GS-QT-0005
 gitscience -C "$TARGET" claim graph
 gitscience -C "$TARGET" claim obligations

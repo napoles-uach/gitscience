@@ -1,0 +1,43 @@
+summary: >-
+  Formalize the abstract induction that accumulates declared local error bounds
+  over a finite number of approximation steps.
+formal_statement:
+  language: lean4
+  theorem_name: local_error_bounds_accumulate
+  declaration: |-
+    theorem local_error_bounds_accumulate
+        {Error : Type}
+        (budget : ErrorBudget Error)
+        (cumulative stepError : Nat -> Error)
+        (initial : budget.le (cumulative 0) budget.zero)
+        (step : forall n,
+          budget.le (cumulative (n + 1))
+            (budget.add (cumulative n) (stepError n))) :
+        forall steps,
+          budget.le (cumulative steps) (accumulatedError budget stepError steps)
+semantic_mapping:
+  - source: A local error bound holds at every approximation step.
+    target: step
+    status: partial
+  - source: Local error bounds accumulate over all steps.
+    target: local_error_bounds_accumulate
+    status: exact
+assumptions:
+  - The declared error relation is transitive.
+  - Ordered addition is monotone in its first argument.
+unformalized:
+  - The analytic local quantum-FMM error bound.
+  - The occupancy-tail estimate used by the numerical diagnostic.
+  - Applicability to generic interacting fermionic states.
+scientific_grounding:
+  status: partial
+  rationale: >-
+    Lean proves only the abstract accumulation rule; the physical and analytic
+    premises that instantiate the rule remain external obligations.
+verification:
+  verifier: lean_formal
+  experiment: trusted_proof
+  request:
+    proof: fmm_error_accumulation
+  assertions:
+    - local_error_bounds_accumulate

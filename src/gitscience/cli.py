@@ -11,6 +11,15 @@ from pathlib import Path
 
 import yaml
 
+from .formalization import (
+    FormalizationError,
+    approve_formalization,
+    create_formalization,
+    formalization_inspection,
+    request_formalization,
+    verify_formalization,
+)
+from .formalizers import FormalizerError
 from .registry import (
     compile_central_registry,
     compile_registry,
@@ -335,6 +344,101 @@ def _cmd_review_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_formal_inspect(args: argparse.Namespace) -> int:
+    _print_yaml(formalization_inspection(_repository(args), args.claim_id))
+    return 0
+
+
+def _cmd_formal_request(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    options = {"timeout": args.timeout}
+    if args.model:
+        options["model"] = args.model
+    record = request_formalization(
+        repo, args.claim_id, args.formalizer, options
+    )
+    print(
+        f"Created draft {record['id']} for {args.claim_id}; "
+        "inspect and commit it before human approval."
+    )
+    return 0
+
+
+def _cmd_formal_create(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    proposal = repo.load_yaml(args.source)
+    proposer_name = args.proposer or repo.git_config("user.name") or "local researcher"
+    record = create_formalization(
+        repo,
+        args.claim_id,
+        proposal,
+        {"kind": "human", "name": proposer_name},
+    )
+    print(
+        f"Created draft {record['id']} for {args.claim_id}; "
+        "inspect and commit it before human approval."
+    )
+    return 0
+
+
+def _cmd_formal_approve(args: argparse.Namespace) -> int:
+    record = approve_formalization(
+        _repository(args), args.formalization_id, args.approver
+    )
+    print(
+        f"Approved {record['id']} and locked formal statement "
+        f"{record['formal_statement']['sha256']}. Commit the approval before Lean runs."
+    )
+    return 0
+
+
+def _cmd_formal_verify(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    evidence = verify_formalization(repo, args.formalization_id)
+    paths = [
+        ".gitscience/config.json",
+        repo.evidence_path(evidence["id"]).relative_to(repo.root).as_posix(),
+        evidence["artifact"]["path"],
+    ]
+    if args.commit_evidence:
+        repo.git(["add", "--", *paths])
+        repo.git(
+            [
+                "commit",
+                "--only",
+                "-m",
+                f"Record Lean evidence for {args.formalization_id}",
+                "--",
+                *paths,
+            ]
+        )
+    print(
+        f"{args.formalization_id}: {evidence['classification']} "
+        f"({evidence['id']}, {evidence['artifact']['path']})"
+    )
+    return 0
+
+
+def _cmd_formal_show(args: argparse.Namespace) -> int:
+    _print_yaml(_repository(args).load_formalization(args.formalization_id))
+    return 0
+
+
+def _cmd_formal_list(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    for path in sorted((repo.root / "formalizations").glob("FM-*.yaml")):
+        record = repo.load_yaml(path)
+        claim_id = record.get("claim", {}).get("id", "?")
+        if args.claim and claim_id != args.claim:
+            continue
+        grounding = record.get("scientific_grounding", {}).get("status", "?")
+        print(
+            f"{record.get('id', path.stem)}\t{claim_id}\t"
+            f"{record.get('status', '?')}\tgrounding={grounding}"
+        )
+    return 0
+
+
 def _cmd_audit(args: argparse.Namespace) -> int:
     reports = _repository(args).audit_all_evidence(args.claim)
     invalid = False
@@ -531,6 +635,41 @@ def build_parser() -> argparse.ArgumentParser:
     review_list.add_argument("--claim")
     review_list.set_defaults(handler=_cmd_review_list)
 
+    formal = commands.add_parser(
+        "formal", help="Propose, approve, and run formal verification requests."
+    )
+    formal_commands = formal.add_subparsers(dest="formal_command", required=True)
+    formal_inspect = formal_commands.add_parser("inspect")
+    formal_inspect.add_argument("claim_id")
+    formal_inspect.set_defaults(handler=_cmd_formal_inspect)
+    formal_request = formal_commands.add_parser("request")
+    formal_request.add_argument("claim_id")
+    formal_request.add_argument("--with", dest="formalizer", required=True)
+    formal_request.add_argument("--model")
+    formal_request.add_argument("--timeout", type=int, default=300)
+    formal_request.set_defaults(handler=_cmd_formal_request)
+    formal_create = formal_commands.add_parser("create")
+    formal_create.add_argument("claim_id")
+    formal_create.add_argument("--from", dest="source", type=Path, required=True)
+    formal_create.add_argument("--proposer")
+    formal_create.set_defaults(handler=_cmd_formal_create)
+    formal_approve = formal_commands.add_parser("approve")
+    formal_approve.add_argument("formalization_id")
+    formal_approve.add_argument("--by", dest="approver")
+    formal_approve.set_defaults(handler=_cmd_formal_approve)
+    formal_verify = formal_commands.add_parser("verify")
+    formal_verify.add_argument("formalization_id")
+    formal_verify.add_argument(
+        "--commit-evidence", action="store_true", help=argparse.SUPPRESS
+    )
+    formal_verify.set_defaults(handler=_cmd_formal_verify)
+    formal_show = formal_commands.add_parser("show")
+    formal_show.add_argument("formalization_id")
+    formal_show.set_defaults(handler=_cmd_formal_show)
+    formal_list = formal_commands.add_parser("list")
+    formal_list.add_argument("--claim")
+    formal_list.set_defaults(handler=_cmd_formal_list)
+
     audit = commands.add_parser("audit", help="Validate evidence integrity.")
     audit.add_argument("--claim")
     audit.add_argument(
@@ -561,8 +700,10 @@ def _normalize_argv(argv: list[str]) -> list[str]:
     except ValueError:
         pass
     else:
+        if verify_index > 0 and normalized[verify_index - 1] == "formal":
+            verify_index = -1
         next_index = verify_index + 1
-        if next_index < len(normalized) and normalized[next_index] not in {
+        if verify_index >= 0 and next_index < len(normalized) and normalized[next_index] not in {
             "inspect",
             "run",
             "-h",
@@ -596,6 +737,8 @@ def main(argv: list[str] | None = None) -> int:
         RepositoryError,
         ReviewError,
         ReviewerError,
+        FormalizationError,
+        FormalizerError,
         VerificationError,
         OSError,
         subprocess.SubprocessError,

@@ -104,7 +104,18 @@ def verify_claim(repo: GitScienceRepository, claim_id: str) -> dict[str, Any]:
     claim = repo.load_claim(claim_id)
     if "verification" not in claim:
         raise VerificationError(f"Claim {claim_id} has no computational verifier")
-    verification = claim["verification"]
+    return verify_with_contract(repo, claim_id, claim["verification"])
+
+
+def verify_with_contract(
+    repo: GitScienceRepository,
+    claim_id: str,
+    verification: dict[str, Any],
+    *,
+    formalization: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run a claim or approved-formalization verification contract."""
+    claim = repo.load_claim(claim_id)
     try:
         repo.require_locked_dependencies(claim_id)
     except RepositoryError as exc:
@@ -184,6 +195,8 @@ def verify_claim(repo: GitScienceRepository, claim_id: str) -> dict[str, Any]:
             "authenticated": False,
         },
     }
+    if formalization is not None:
+        evidence["formalization"] = formalization
     evidence_path = repo.evidence_path(evidence_id)
     evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
     return evidence

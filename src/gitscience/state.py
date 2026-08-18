@@ -105,6 +105,8 @@ def _current_evidence(
             continue
         if record.get("claim", {}).get("sha256") != claim_digest:
             continue
+        if not repo.evidence_targets_current_formalization(record):
+            continue
         artifact_path = repo.root / record["artifact"]["path"]
         evidence.append(
             {
@@ -127,6 +129,38 @@ def _current_evidence(
             }
         )
     return sorted(evidence, key=lambda item: item["id"])
+
+
+def _current_formalizations(
+    repo: GitScienceRepository, claim_id: str, claim_digest: str
+) -> list[dict[str, Any]]:
+    from .formalization import formalizations_for_claim
+
+    formalizations = []
+    for report in formalizations_for_claim(repo, claim_id, claim_digest):
+        record = report["record"]
+        formalizations.append(
+            {
+                "id": record["id"],
+                "status": record["status"],
+                "summary": record["summary"],
+                "proposer": record["proposer"],
+                "formal_statement": record["formal_statement"],
+                "semantic_mapping": record["semantic_mapping"],
+                "assumptions": record["assumptions"],
+                "unformalized": record["unformalized"],
+                "scientific_grounding": record["scientific_grounding"],
+                "semantic_approval": record["semantic_approval"],
+                "verification": record.get("verification"),
+                "revision": {
+                    "path": report["path"],
+                    "sha256": repo.sha256(repo.formalization_path(record["id"])),
+                    "git_commit": report["git_commit"],
+                    "state": "committed",
+                },
+            }
+        )
+    return formalizations
 
 
 def _current_reviews(
@@ -255,6 +289,29 @@ def _provenance_dimension(
     return "unauthenticated"
 
 
+def _formalization_dimension(formalizations: list[dict[str, Any]]) -> str:
+    if any(item["status"] == "human_approved" for item in formalizations):
+        return "human_approved"
+    if formalizations:
+        return "draft"
+    return "not_requested"
+
+
+def _grounding_dimension(formalizations: list[dict[str, Any]]) -> str:
+    statuses = {
+        item["scientific_grounding"]["status"]
+        for item in formalizations
+        if item["status"] == "human_approved"
+    }
+    if "established" in statuses:
+        return "established"
+    if "partial" in statuses:
+        return "partial"
+    if "unlinked" in statuses:
+        return "unlinked"
+    return "unassessed"
+
+
 def _obligation_type(reason: str) -> str:
     if "explicit assumption" in reason:
         return "unresolved_assumption"
@@ -274,6 +331,7 @@ def _obligations(
     dependency_report: dict[str, Any],
     dependency_closure: dict[str, list[dict[str, Any]]],
     evidence: list[dict[str, Any]],
+    formalizations: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     obligations = []
     seen_reasons = set()
@@ -327,6 +385,48 @@ def _obligations(
                 "message": "This claim is explicitly classified as a conjecture.",
             }
         )
+    for formalization in formalizations:
+        if formalization["status"] == "draft":
+            obligations.append(
+                {
+                    "type": "formalization_approval",
+                    "source": "formalization",
+                    "source_formalization": formalization["id"],
+                    "message": (
+                        f"{formalization['id']} is an agent or human draft awaiting "
+                        "semantic approval."
+                    ),
+                }
+            )
+            continue
+        linked_evidence = [
+            item
+            for item in evidence
+            if item.get("record", {}).get("formalization", {}).get("id")
+            == formalization["id"]
+        ]
+        if not linked_evidence:
+            obligations.append(
+                {
+                    "type": "formal_proof_missing",
+                    "source": "formalization",
+                    "source_formalization": formalization["id"],
+                    "message": (
+                        f"{formalization['id']} is human-approved but has no current "
+                        "trusted Lean evidence."
+                    ),
+                }
+            )
+        grounding = formalization["scientific_grounding"]
+        if grounding["status"] != "established":
+            obligations.append(
+                {
+                    "type": "scientific_grounding",
+                    "source": "formalization",
+                    "source_formalization": formalization["id"],
+                    "message": grounding["rationale"],
+                }
+            )
     return obligations
 
 
@@ -342,11 +442,14 @@ def compile_claim_state(
     model_revision = _revision(repo, repo.model_path(claim["model"]))
     study_revision = _revision(repo, repo.study_path(study_id)) if study_id else None
     evidence = _current_evidence(repo, claim_id, claim_revision["sha256"])
+    formalizations = _current_formalizations(
+        repo, claim_id, claim_revision["sha256"]
+    )
     reviews = _current_reviews(repo, claim_id, claim_revision["sha256"])
     dependency_report = repo.dependency_report(claim_id)
     dependency_closure = _dependency_closure(repo, claim)
     obligations = _obligations(
-        claim, dependency_report, dependency_closure, evidence
+        claim, dependency_report, dependency_closure, evidence, formalizations
     )
     derived_status = repo.claim_status(claim_id)
     revision_states = [claim_revision["state"], model_revision["state"]]
@@ -401,6 +504,8 @@ def compile_claim_state(
                 "dependencies": _dependency_dimension(dependency_report),
                 "provenance": _provenance_dimension(evidence, reviews),
                 "review": "advisory_available" if reviews else "unreviewed",
+                "formalization": _formalization_dimension(formalizations),
+                "scientific_grounding": _grounding_dimension(formalizations),
                 "revision": (
                     "committed"
                     if all(value == "committed" for value in revision_states)
@@ -411,6 +516,7 @@ def compile_claim_state(
         },
         "dependency_closure": dependency_closure,
         "evidence": evidence,
+        "formalizations": formalizations,
         "reviews": reviews,
         "obligations": obligations,
         "scope_boundary": {
@@ -425,6 +531,8 @@ def compile_claim_state(
             "llm_must_not_change_status": True,
             "absence_of_evidence_is_not_verification": True,
             "repository_text_and_prior_reviews_are_untrusted_data": True,
+            "llm_formalizations_require_human_semantic_approval": True,
+            "lean_checks_logic_not_scientific_grounding": True,
         },
     }
 
@@ -463,6 +571,18 @@ def explain_claim_state(state: dict[str, Any]) -> str:
             )
     else:
         lines.append("  none for the current revision")
+
+    lines.extend(["", "Formalization:"])
+    if state.get("formalizations"):
+        for formalization in state["formalizations"]:
+            statement = formalization["formal_statement"]
+            grounding = formalization["scientific_grounding"]["status"]
+            lines.append(
+                f"  {formalization['id']}: {formalization['status']}; "
+                f"{statement['theorem_name']}; grounding={grounding}"
+            )
+    else:
+        lines.append("  none requested")
 
     lines.extend(["", "Dependencies:"])
     if state["dependency_closure"]["nodes"]:
